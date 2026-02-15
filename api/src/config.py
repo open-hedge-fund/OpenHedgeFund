@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     secret_key: str = "CHANGE-ME-IN-PRODUCTION"
     access_token_lifetime_seconds: int = 86400  # 24 hours
+    cors_origins: str = "http://localhost:3010"
 
     model_config = {"env_file": ".env"}
 
