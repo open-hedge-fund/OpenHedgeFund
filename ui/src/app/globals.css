@@ -241,6 +241,38 @@ img, svg {
   height: 18px;
 }
 
+.form-input-password-wrapper {
+  position: relative;
+}
+
+.form-input-password-wrapper .form-input {
+  padding-right: 2.75rem;
+}
+
+.form-password-toggle {
+  position: absolute;
+  right: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-light);
+  transition: color var(--transition-fast);
+}
+
+.form-password-toggle:hover {
+  color: var(--color-text-secondary);
+}
+
+.form-password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
 .form-input {
   display: block;
   width: 100%;
