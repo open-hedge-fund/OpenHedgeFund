@@ -2,25 +2,13 @@
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
+import { LogoIcon } from "@/components/Brand";
 
 export default function Home() {
   return (
     <ProtectedRoute>
       <Dashboard />
     </ProtectedRoute>
-  );
-}
-
-function LogoIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" rx="10" fill="#3C50E0" />
-      <path
-        d="M14 32V16l10 8-10 8ZM24 32V16l10 8-10 8Z"
-        fill="white"
-        fillOpacity="0.9"
-      />
-    </svg>
   );
 }
 

@@ -390,6 +390,7 @@ img, svg {
   font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-text-primary);
+  letter-spacing: -0.02em;
 }
 
 .dashboard-header-actions {
