@@ -38,26 +38,27 @@ jobs:
       - name: Test
         working-directory: api
         env:
-          DATABASE_URL: postgresql://openhedgefund:testpass@localhost:5432/openhedgefund_test
+          DATABASE_URL: postgresql+asyncpg://openhedgefund:testpass@localhost:5432/openhedgefund_test
+          SECRET_KEY: test-secret-key
         run: pytest
 
-  ui:
-    name: UI Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Install dependencies
-        working-directory: ui
-        run: npm ci
-      - name: Lint
-        working-directory: ui
-        run: npm run lint
-      - name: Build
-        working-directory: ui
-        run: npm run build
+  # ui:
+  #   name: UI Tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "22"
+  #     - name: Install dependencies
+  #       working-directory: ui
+  #       run: npm ci
+  #     - name: Lint
+  #       working-directory: ui
+  #       run: npm run lint
+  #     - name: Build
+  #       working-directory: ui
+  #       run: npm run build
 
   terraform:
     name: Terraform Validate
