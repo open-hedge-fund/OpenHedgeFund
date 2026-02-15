@@ -43,13 +43,12 @@ export default function LoginPage() {
             <span className="auth-sidebar-logo-text">OpenHedgeFund</span>
           </div>
           <h1 className="auth-sidebar-title">
-            Institutional-Grade
+            Run Your Fund Without
             <br />
-            Trading Infrastructure
+            the Engineering Bill
           </h1>
           <p className="auth-sidebar-tagline">
-            Open-source hedge fund platform with multi-tenant support,
-            real-time analytics, and automated portfolio management.
+            Free, open-source operations platform built for emerging managers.
           </p>
         </div>
       </div>

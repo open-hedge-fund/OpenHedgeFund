@@ -44,13 +44,12 @@ export default function RegisterPage() {
             <span className="auth-sidebar-logo-text">OpenHedgeFund</span>
           </div>
           <h1 className="auth-sidebar-title">
-            Start Building Your
+            Run Your Fund Without
             <br />
-            Trading Platform
+            the Engineering Bill
           </h1>
           <p className="auth-sidebar-tagline">
-            Create your account to access institutional-grade trading
-            infrastructure with multi-tenant support and real-time analytics.
+            Free, open-source operations platform built for emerging managers.
           </p>
         </div>
       </div>
