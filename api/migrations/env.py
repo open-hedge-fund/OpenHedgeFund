@@ -8,7 +8,13 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.database import Base
 from src.models import Tenant, User  # noqa: F401
 
+import os
+
 config = context.config
+
+if db_url := os.environ.get("DATABASE_URL"):
+    config.set_main_option("sqlalchemy.url", db_url)
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
