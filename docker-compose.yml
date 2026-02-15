@@ -32,12 +32,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://openhedgefund:localdev@db:5432/openhedgefund
+      DATABASE_URL: postgresql+asyncpg://openhedgefund:localdev@db:5432/openhedgefund
       REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: local-dev-secret-key-change-in-production
     depends_on:
       db:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     volumes:
       - ./api/src:/app/src
