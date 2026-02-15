@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "OpenHedgeFund Job Server"
 requires-python = ">=3.12"
 dependencies = [
+    "celery[redis]>=5.4",
     "sqlalchemy>=2.0",
     "psycopg2-binary>=2.9",
     "redis>=5.0",
