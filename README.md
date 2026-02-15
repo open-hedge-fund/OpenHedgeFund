@@ -18,39 +18,72 @@ An open-source hedge fund infrastructure platform.
 - Node.js 22+
 - Terraform 1.5+
 
-## Quick Start
+## Quick Start (Docker)
 
 ```bash
 # Clone the repo
 git clone https://github.com/open-hedge-fund/OpenHedgeFund.git
 cd OpenHedgeFund
 
-# Start all services locally
-make up
+# Start core services (Postgres, API, UI)
+docker compose up --build db api ui
 
-# Run database migrations
-make migrate
-
-# Seed development data
-make seed
+# Run database migrations (in a second terminal)
+docker compose exec api alembic revision --autogenerate -m "initial"
+docker compose exec api alembic upgrade head
 ```
 
-## Development
+API at http://localhost:8000, UI at http://localhost:3000.
+
+## Local Development (without Docker)
+
+You still need Postgres running (e.g. via Docker):
 
 ```bash
-# Start individual services
-make api        # Start API server
-make jobs       # Start job server
-make ui         # Start UI dev server
+docker compose up db
+```
 
-# Run tests
-make test       # Run all tests
-make test-api   # Run API tests
-make test-ui    # Run UI tests
+### API
 
-# Database
-make migrate    # Run migrations
-make rollback   # Rollback last migration
+```bash
+cd api
+python3 -m venv .venv
+source .venv/bin/activate
+pip install ".[dev]"
+alembic upgrade head
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Jobs
+
+```bash
+cd jobs
+python3 -m venv .venv
+source .venv/bin/activate
+pip install ".[dev]"
+celery -A src.celery_app worker --loglevel=info
+```
+
+### UI
+
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+## Makefile Shortcuts
+
+```bash
+make up          # docker compose up --build
+make api         # Start API server locally
+make jobs        # Start job server locally
+make ui          # Start UI dev server
+make test        # Run all tests
+make test-api    # Run API tests
+make test-ui     # Run UI tests
+make migrate     # Run migrations
+make rollback    # Rollback last migration
 ```
 
 ## Project Structure
