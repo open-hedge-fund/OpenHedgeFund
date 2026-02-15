@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.tenants import router as tenants_router
 from src.api.users import router as users_router
+from src.config import settings
 from src.core.auth import auth_backend, fastapi_users
 from src.schemas.user import UserCreate, UserRead, UserUpdate
 
@@ -13,7 +14,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.cors_origins.split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
