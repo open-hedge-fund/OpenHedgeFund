@@ -19,7 +19,7 @@ function Dashboard() {
     <div className="dashboard-wrapper">
       <header className="dashboard-header">
         <div className="dashboard-header-brand">
-          <LogoIcon />
+          <LogoIcon size={32} />
           <span className="dashboard-header-title">OpenHedgeFund</span>
         </div>
         <div className="dashboard-header-actions">
