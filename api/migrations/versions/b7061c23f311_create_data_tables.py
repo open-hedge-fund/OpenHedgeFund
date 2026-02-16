@@ -57,7 +57,7 @@ def upgrade() -> None:
     )
     op.create_table('currencies',
     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
-    sa.Column('ccy', sa.String(length=10), nullable=False),
+    sa.Column('ccy', sa.String(length=20), nullable=False),
     sa.Column('ccy_des', sa.String(length=200), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('tenant_id', sa.UUID(), nullable=False),
