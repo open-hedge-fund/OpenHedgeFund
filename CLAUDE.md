@@ -86,6 +86,12 @@ When adding restricted value fields, enforce at all three layers:
 - UI API base URL via `NEXT_PUBLIC_API_URL` env var
 - DB connection: `DATABASE_URL` env var (default: `postgresql+asyncpg://openhedgefund:localdev@localhost:5432/openhedgefund`)
 
+### Error Pages
+- **404** — `ui/src/app/not-found.tsx` (auto-served by Next.js for unknown routes)
+- **500** — `ui/src/app/500/page.tsx` (redirect here for server errors)
+- **503** — `ui/src/app/503/page.tsx` (redirect here for maintenance)
+- Shared component: `ui/src/components/ErrorPage.tsx`
+
 ## Services (docker-compose)
 | Service | Port | Description |
 |---------|------|-------------|
