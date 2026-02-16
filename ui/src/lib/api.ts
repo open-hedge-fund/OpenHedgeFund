@@ -389,6 +389,20 @@ export interface UserData {
   is_superuser: boolean;
   is_verified: boolean;
   role: "member" | "admin";
+  created_at?: string;
+}
+
+export interface UserProfileUpdateData {
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface UserCreateData {
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  role?: "member" | "admin";
 }
 
 export const userApi = {
@@ -401,6 +415,39 @@ export const userApi = {
     role: "member" | "admin",
   ): Promise<UserData> => {
     const response = await api.patch(`/users/${userId}/role`, { role });
+    return response.data;
+  },
+  updateProfile: async (data: UserProfileUpdateData): Promise<UserData> => {
+    const response = await api.patch("/users/me", data);
+    return response.data;
+  },
+  addUser: async (data: UserCreateData): Promise<UserData> => {
+    const response = await api.post("/users/", data);
+    return response.data;
+  },
+};
+
+/* ─── Tenants ─── */
+export interface TenantData {
+  id: string;
+  name: string;
+  domain: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TenantUpdateData {
+  name?: string;
+  domain?: string;
+}
+
+export const tenantApi = {
+  getMyTenant: async (): Promise<TenantData> => {
+    const response = await api.get("/tenants/me");
+    return response.data;
+  },
+  updateMyTenant: async (data: TenantUpdateData): Promise<TenantData> => {
+    const response = await api.patch("/tenants/me", data);
     return response.data;
   },
 };

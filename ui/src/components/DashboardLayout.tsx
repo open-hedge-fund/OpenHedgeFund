@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/Sidebar";
+import UserProfileDropdown from "@/components/UserProfileDropdown";
 import { HamburgerIcon } from "@/components/icons/SidebarIcons";
 
 export default function DashboardLayout({
@@ -10,7 +10,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
@@ -29,12 +28,7 @@ export default function DashboardLayout({
           >
             <HamburgerIcon size={20} />
           </button>
-          <div className="dashboard-header-actions">
-            <span className="dashboard-header-user">{user?.email}</span>
-            <button className="btn btn-logout" onClick={logout}>
-              Sign Out
-            </button>
-          </div>
+          <UserProfileDropdown />
         </header>
 
         <main className="dashboard-content">{children}</main>

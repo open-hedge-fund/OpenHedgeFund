@@ -23,6 +23,14 @@ class UserUpdate(schemas.BaseUserUpdate):
     last_name: str | None = None
 
 
+class UserCreateInTenant(BaseModel):
+    email: str
+    password: str
+    first_name: str | None = None
+    last_name: str | None = None
+    role: Literal["member", "admin"] = "member"
+
+
 class UserRoleUpdate(BaseModel):
     role: Literal["member", "admin"]
 

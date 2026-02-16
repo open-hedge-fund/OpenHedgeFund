@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.auth import current_active_user
-from src.core.permissions import require_superuser
+from src.core.permissions import require_superuser, require_tenant_admin
 from src.database import get_async_session
 from src.models.tenant import Tenant
 from src.models.user import User
@@ -23,6 +23,24 @@ async def get_my_tenant(
     tenant = result.scalar_one_or_none()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+    return tenant
+
+
+@router.patch("/me", response_model=TenantSchema)
+async def update_my_tenant(
+    tenant_in: TenantUpdate,
+    user: User = Depends(require_tenant_admin),
+    session: AsyncSession = Depends(get_async_session),
+):
+    result = await session.execute(select(Tenant).where(Tenant.id == user.tenant_id))
+    tenant = result.scalar_one_or_none()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    update_data = tenant_in.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(tenant, key, value)
+    await session.commit()
+    await session.refresh(tenant)
     return tenant
 
 
