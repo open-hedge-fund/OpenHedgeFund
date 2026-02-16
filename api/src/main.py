@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from src.api.file_imports import router as file_imports_router
 from src.api.files import router as files_router
 from src.api.tenants import router as tenants_router
 from src.api.users import router as users_router
@@ -39,6 +40,7 @@ app.include_router(
 app.include_router(tenants_router)
 app.include_router(users_router)
 app.include_router(files_router)
+app.include_router(file_imports_router)
 
 
 @app.get("/health")

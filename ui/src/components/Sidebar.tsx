@@ -10,6 +10,7 @@ import {
   TeamIcon,
   SettingsIcon,
   FileIcon,
+  ImportIcon,
   CloseIcon,
 } from "@/components/icons/SidebarIcons";
 
@@ -20,6 +21,7 @@ interface SidebarProps {
 
 const menuItems = [
   { label: "Dashboard", icon: DashboardIcon, href: "/", active: true },
+  { label: "Import Data", icon: ImportIcon, href: "/import-data" },
   { label: "Portfolio", icon: PortfolioIcon, href: "#", badge: "Soon" },
   { label: "Analytics", icon: AnalyticsIcon, href: "#", badge: "Soon" },
   { label: "Trading", icon: TradingIcon, href: "#", badge: "Soon" },
