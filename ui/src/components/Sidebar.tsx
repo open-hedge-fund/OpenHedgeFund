@@ -9,6 +9,7 @@ import {
   RiskIcon,
   TeamIcon,
   SettingsIcon,
+  FileIcon,
   CloseIcon,
 } from "@/components/icons/SidebarIcons";
 
@@ -27,6 +28,7 @@ const menuItems = [
 
 const othersItems = [
   { label: "Team", icon: TeamIcon, href: "#", badge: "Soon" },
+  { label: "Files", icon: FileIcon, href: "/settings/files" },
   { label: "Settings", icon: SettingsIcon, href: "#", badge: "Soon" },
 ];
 
@@ -73,7 +75,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             ))}
           </ul>
 
-          <div className="sidebar-section-title">Others</div>
+          <div className="sidebar-section-title">Settings</div>
           <ul className="sidebar-menu">
             {othersItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">

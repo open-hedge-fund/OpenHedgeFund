@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.database import Base
-from src.models import Tenant, User  # noqa: F401
+from src.models import File, Tenant, User  # noqa: F401
 
 import os
 
