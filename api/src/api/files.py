@@ -18,12 +18,10 @@ async def list_files(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(File)
-        .where(File.tenant_id == user.tenant_id)
-        .offset(skip)
-        .limit(limit)
-    )
+    query = select(File)
+    if not user.is_superuser:
+        query = query.where(File.tenant_id == user.tenant_id)
+    result = await session.execute(query.offset(skip).limit(limit))
     return result.scalars().all()
 
 
@@ -48,11 +46,10 @@ async def get_file(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(File)
-        .where(File.id == file_id)
-        .where(File.tenant_id == user.tenant_id)
-    )
+    query = select(File).where(File.id == file_id)
+    if not user.is_superuser:
+        query = query.where(File.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     file = result.scalar_one_or_none()
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
@@ -66,11 +63,10 @@ async def update_file(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(File)
-        .where(File.id == file_id)
-        .where(File.tenant_id == user.tenant_id)
-    )
+    query = select(File).where(File.id == file_id)
+    if not user.is_superuser:
+        query = query.where(File.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     file = result.scalar_one_or_none()
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
@@ -88,11 +84,10 @@ async def delete_file(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(File)
-        .where(File.id == file_id)
-        .where(File.tenant_id == user.tenant_id)
-    )
+    query = select(File).where(File.id == file_id)
+    if not user.is_superuser:
+        query = query.where(File.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     file = result.scalar_one_or_none()
     if not file:
         raise HTTPException(status_code=404, detail="File not found")

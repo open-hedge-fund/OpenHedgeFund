@@ -18,12 +18,10 @@ async def list_security_types(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(SecurityType)
-        .where(SecurityType.tenant_id == user.tenant_id)
-        .offset(skip)
-        .limit(limit)
-    )
+    query = select(SecurityType)
+    if not user.is_superuser:
+        query = query.where(SecurityType.tenant_id == user.tenant_id)
+    result = await session.execute(query.offset(skip).limit(limit))
     return result.scalars().all()
 
 
@@ -48,11 +46,10 @@ async def get_security_type(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(SecurityType)
-        .where(SecurityType.id == item_id)
-        .where(SecurityType.tenant_id == user.tenant_id)
-    )
+    query = select(SecurityType).where(SecurityType.id == item_id)
+    if not user.is_superuser:
+        query = query.where(SecurityType.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Security type not found")
@@ -66,11 +63,10 @@ async def update_security_type(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(SecurityType)
-        .where(SecurityType.id == item_id)
-        .where(SecurityType.tenant_id == user.tenant_id)
-    )
+    query = select(SecurityType).where(SecurityType.id == item_id)
+    if not user.is_superuser:
+        query = query.where(SecurityType.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Security type not found")
@@ -87,11 +83,10 @@ async def delete_security_type(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(SecurityType)
-        .where(SecurityType.id == item_id)
-        .where(SecurityType.tenant_id == user.tenant_id)
-    )
+    query = select(SecurityType).where(SecurityType.id == item_id)
+    if not user.is_superuser:
+        query = query.where(SecurityType.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Security type not found")

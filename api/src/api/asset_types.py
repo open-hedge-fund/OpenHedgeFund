@@ -18,12 +18,10 @@ async def list_asset_types(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(AssetType)
-        .where(AssetType.tenant_id == user.tenant_id)
-        .offset(skip)
-        .limit(limit)
-    )
+    query = select(AssetType)
+    if not user.is_superuser:
+        query = query.where(AssetType.tenant_id == user.tenant_id)
+    result = await session.execute(query.offset(skip).limit(limit))
     return result.scalars().all()
 
 
@@ -48,11 +46,10 @@ async def get_asset_type(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(AssetType)
-        .where(AssetType.id == item_id)
-        .where(AssetType.tenant_id == user.tenant_id)
-    )
+    query = select(AssetType).where(AssetType.id == item_id)
+    if not user.is_superuser:
+        query = query.where(AssetType.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Asset type not found")
@@ -66,11 +63,10 @@ async def update_asset_type(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(AssetType)
-        .where(AssetType.id == item_id)
-        .where(AssetType.tenant_id == user.tenant_id)
-    )
+    query = select(AssetType).where(AssetType.id == item_id)
+    if not user.is_superuser:
+        query = query.where(AssetType.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Asset type not found")
@@ -87,11 +83,10 @@ async def delete_asset_type(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(AssetType)
-        .where(AssetType.id == item_id)
-        .where(AssetType.tenant_id == user.tenant_id)
-    )
+    query = select(AssetType).where(AssetType.id == item_id)
+    if not user.is_superuser:
+        query = query.where(AssetType.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Asset type not found")

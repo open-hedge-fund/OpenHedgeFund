@@ -18,12 +18,11 @@ async def list_currencies(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
+    query = select(Currency)
+    if not user.is_superuser:
+        query = query.where(Currency.tenant_id == user.tenant_id)
     result = await session.execute(
-        select(Currency)
-        .where(Currency.tenant_id == user.tenant_id)
-        .order_by(Currency.ccy)
-        .offset(skip)
-        .limit(limit)
+        query.order_by(Currency.ccy).offset(skip).limit(limit)
     )
     return result.scalars().all()
 
@@ -49,11 +48,10 @@ async def get_currency(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(Currency)
-        .where(Currency.id == item_id)
-        .where(Currency.tenant_id == user.tenant_id)
-    )
+    query = select(Currency).where(Currency.id == item_id)
+    if not user.is_superuser:
+        query = query.where(Currency.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Currency not found")
@@ -67,11 +65,10 @@ async def update_currency(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(Currency)
-        .where(Currency.id == item_id)
-        .where(Currency.tenant_id == user.tenant_id)
-    )
+    query = select(Currency).where(Currency.id == item_id)
+    if not user.is_superuser:
+        query = query.where(Currency.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Currency not found")
@@ -88,11 +85,10 @@ async def delete_currency(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(Currency)
-        .where(Currency.id == item_id)
-        .where(Currency.tenant_id == user.tenant_id)
-    )
+    query = select(Currency).where(Currency.id == item_id)
+    if not user.is_superuser:
+        query = query.where(Currency.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Currency not found")
