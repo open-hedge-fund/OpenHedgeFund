@@ -11,6 +11,7 @@ import {
   FileIcon,
   ImportIcon,
   CloseIcon,
+  SecurityMasterIcon,
 } from "@/components/icons/SidebarIcons";
 import { useAuth } from "@/context/AuthContext";
 
@@ -119,6 +120,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: DashboardIcon, href: "/" },
   { label: "Import Data", icon: ImportIcon, href: "/import-data" },
+  { label: "Security Master", icon: SecurityMasterIcon, href: "/security-master" },
   { label: "Portfolio", icon: PortfolioIcon, href: "#", badge: "Soon" },
   { label: "Analytics", icon: AnalyticsIcon, href: "#", badge: "Soon" },
   { label: "Trading", icon: TradingIcon, href: "#", badge: "Soon" },
