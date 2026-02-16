@@ -14,6 +14,7 @@ import {
   ImportIcon,
   CloseIcon,
 } from "@/components/icons/SidebarIcons";
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
   open: boolean;
@@ -31,7 +32,15 @@ function DataIcon({ size = 22 }: { size?: number }) {
   );
 }
 
-const menuItems = [
+interface MenuItem {
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  href: string;
+  badge?: string;
+  requiresAdmin?: boolean;
+}
+
+const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: DashboardIcon, href: "/" },
   { label: "Import Data", icon: ImportIcon, href: "/import-data" },
   { label: "Portfolio", icon: PortfolioIcon, href: "#", badge: "Soon" },
@@ -40,7 +49,7 @@ const menuItems = [
   { label: "Risk Management", icon: RiskIcon, href: "#", badge: "Soon" },
 ];
 
-const settingsItems = [
+const settingsItems: MenuItem[] = [
   { label: "Files", icon: FileIcon, href: "/settings/files" },
   { label: "Asset Types", icon: DataIcon, href: "/settings/asset-types" },
   { label: "Security Types", icon: DataIcon, href: "/settings/security-types" },
@@ -51,12 +60,20 @@ const settingsItems = [
   { label: "Custodians", icon: DataIcon, href: "/settings/custodians" },
   { label: "Funds", icon: DataIcon, href: "/settings/funds" },
   { label: "Market Categories", icon: DataIcon, href: "/settings/market-categories" },
-  { label: "Team", icon: TeamIcon, href: "#", badge: "Soon" },
+  { label: "Team", icon: TeamIcon, href: "/settings/team", requiresAdmin: true },
   { label: "Settings", icon: SettingsIcon, href: "#", badge: "Soon" },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const isAdmin = user?.is_superuser || user?.role === "admin";
+
+  const visibleSettingsItems = settingsItems.filter(
+    (item) => !item.requiresAdmin || isAdmin,
+  );
+
   return (
     <>
       <div
@@ -101,7 +118,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
           <div className="sidebar-section-title">Settings</div>
           <ul className="sidebar-menu">
-            {settingsItems.map((item) => (
+            {visibleSettingsItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
                 <a href={item.href} className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}>
                   <span className="sidebar-menu-link-icon">

@@ -43,6 +43,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             if k not in ("password", "org_name")
         }
         user_dict["tenant_id"] = tenant_id
+        user_dict["role"] = "admin"
         user_dict["hashed_password"] = self.password_helper.hash(user_create.password)
         user_dict["id"] = uuid.uuid4()
 

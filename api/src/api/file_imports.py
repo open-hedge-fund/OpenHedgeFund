@@ -21,7 +21,9 @@ async def list_file_imports(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport).where(FileImport.tenant_id == user.tenant_id)
+    query = select(FileImport)
+    if not user.is_superuser:
+        query = query.where(FileImport.tenant_id == user.tenant_id)
     if status:
         query = query.where(FileImport.status == status)
     query = query.order_by(desc(FileImport.created_at)).offset(skip).limit(limit)
@@ -35,11 +37,10 @@ async def get_file_import(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(FileImport)
-        .where(FileImport.id == import_id)
-        .where(FileImport.tenant_id == user.tenant_id)
-    )
+    query = select(FileImport).where(FileImport.id == import_id)
+    if not user.is_superuser:
+        query = query.where(FileImport.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     file_import = result.scalar_one_or_none()
     if not file_import:
         raise HTTPException(status_code=404, detail="File import not found")
@@ -69,11 +70,10 @@ async def update_file_import(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(FileImport)
-        .where(FileImport.id == import_id)
-        .where(FileImport.tenant_id == user.tenant_id)
-    )
+    query = select(FileImport).where(FileImport.id == import_id)
+    if not user.is_superuser:
+        query = query.where(FileImport.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     file_import = result.scalar_one_or_none()
     if not file_import:
         raise HTTPException(status_code=404, detail="File import not found")

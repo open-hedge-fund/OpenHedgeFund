@@ -18,12 +18,11 @@ async def list_countries(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
+    query = select(Country)
+    if not user.is_superuser:
+        query = query.where(Country.tenant_id == user.tenant_id)
     result = await session.execute(
-        select(Country)
-        .where(Country.tenant_id == user.tenant_id)
-        .order_by(Country.country_code)
-        .offset(skip)
-        .limit(limit)
+        query.order_by(Country.country_code).offset(skip).limit(limit)
     )
     return result.scalars().all()
 
@@ -49,11 +48,10 @@ async def get_country(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(Country)
-        .where(Country.id == item_id)
-        .where(Country.tenant_id == user.tenant_id)
-    )
+    query = select(Country).where(Country.id == item_id)
+    if not user.is_superuser:
+        query = query.where(Country.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Country not found")
@@ -67,11 +65,10 @@ async def update_country(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(Country)
-        .where(Country.id == item_id)
-        .where(Country.tenant_id == user.tenant_id)
-    )
+    query = select(Country).where(Country.id == item_id)
+    if not user.is_superuser:
+        query = query.where(Country.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Country not found")
@@ -88,11 +85,10 @@ async def delete_country(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    result = await session.execute(
-        select(Country)
-        .where(Country.id == item_id)
-        .where(Country.tenant_id == user.tenant_id)
-    )
+    query = select(Country).where(Country.id == item_id)
+    if not user.is_superuser:
+        query = query.where(Country.tenant_id == user.tenant_id)
+    result = await session.execute(query)
     obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Country not found")

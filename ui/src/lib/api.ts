@@ -378,4 +378,31 @@ export const securitySubTypeApi = {
   },
 };
 
+/* ─── Users ─── */
+export interface UserData {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  tenant_id: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  is_verified: boolean;
+  role: "member" | "admin";
+}
+
+export const userApi = {
+  getUsers: async (): Promise<UserData[]> => {
+    const response = await api.get("/users/");
+    return response.data;
+  },
+  updateUserRole: async (
+    userId: string,
+    role: "member" | "admin",
+  ): Promise<UserData> => {
+    const response = await api.patch(`/users/${userId}/role`, { role });
+    return response.data;
+  },
+};
+
 export default api;
