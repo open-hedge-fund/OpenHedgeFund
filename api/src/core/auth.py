@@ -37,6 +37,12 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             tenant_id = tenant.id
             await session.commit()
 
+        # Seed default reference data for the new tenant
+        from src.defaults import insert_defaults_for_tenant
+
+        async with async_session_maker() as session:
+            await insert_defaults_for_tenant(session, tenant_id)
+
         user_dict = {
             k: v
             for k, v in user_create.model_dump().items()
