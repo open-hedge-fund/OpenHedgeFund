@@ -120,7 +120,6 @@ def upgrade() -> None:
     sa.Column('security_subtype_code', sa.String(length=30), nullable=False),
     sa.Column('security_subtype_desc', sa.String(length=100), nullable=False),
     sa.Column('security_type_id', sa.BigInteger(), nullable=False),
-    sa.Column('geneva_record_type_id', sa.Integer(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('tenant_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),

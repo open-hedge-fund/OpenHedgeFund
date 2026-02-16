@@ -8,7 +8,7 @@ class SecuritySubTypeBase(BaseModel):
     security_subtype_code: str
     security_subtype_desc: str
     security_type_id: int
-    geneva_record_type_id: int | None = None
+
     is_active: bool = True
 
 
@@ -20,7 +20,7 @@ class SecuritySubTypeUpdate(BaseModel):
     security_subtype_code: str | None = None
     security_subtype_desc: str | None = None
     security_type_id: int | None = None
-    geneva_record_type_id: int | None = None
+
     is_active: bool | None = None
 
 

@@ -354,7 +354,6 @@ export interface SecuritySubTypeData {
   security_subtype_code: string;
   security_subtype_desc: string;
   security_type_id: number;
-  geneva_record_type_id: number | null;
   is_active: boolean;
   tenant_id: string;
   created_at: string;

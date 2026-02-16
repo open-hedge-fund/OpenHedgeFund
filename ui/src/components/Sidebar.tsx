@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { LogoIcon } from "@/components/Brand";
 import {
   DashboardIcon,
@@ -31,7 +32,7 @@ function DataIcon({ size = 22 }: { size?: number }) {
 }
 
 const menuItems = [
-  { label: "Dashboard", icon: DashboardIcon, href: "/", active: true },
+  { label: "Dashboard", icon: DashboardIcon, href: "/" },
   { label: "Import Data", icon: ImportIcon, href: "/import-data" },
   { label: "Portfolio", icon: PortfolioIcon, href: "#", badge: "Soon" },
   { label: "Analytics", icon: AnalyticsIcon, href: "#", badge: "Soon" },
@@ -55,6 +56,7 @@ const settingsItems = [
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
+  const pathname = usePathname();
   return (
     <>
       <div
@@ -83,7 +85,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <li key={item.label} className="sidebar-menu-item">
                 <a
                   href={item.href}
-                  className={`sidebar-menu-link${item.active ? " active" : ""}`}
+                  className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}
                 >
                   <span className="sidebar-menu-link-icon">
                     <item.icon size={22} />
@@ -101,7 +103,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <ul className="sidebar-menu">
             {settingsItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
-                <a href={item.href} className="sidebar-menu-link">
+                <a href={item.href} className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}>
                   <span className="sidebar-menu-link-icon">
                     <item.icon size={22} />
                   </span>

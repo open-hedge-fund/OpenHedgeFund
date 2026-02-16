@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,7 +17,6 @@ class SecuritySubType(Base):
     security_type_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("security_types.id"), nullable=False
     )
-    geneva_record_type_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(

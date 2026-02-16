@@ -148,7 +148,6 @@ function SecuritySubTypesContent() {
                   <th>CODE</th>
                   <th>DESCRIPTION</th>
                   <th>SECURITY TYPE</th>
-                  <th>GENEVA ID</th>
                   <th>STATUS</th>
                   <th>ACTIONS</th>
                 </tr>
@@ -159,7 +158,6 @@ function SecuritySubTypesContent() {
                     <td>{item.security_subtype_code}</td>
                     <td>{item.security_subtype_desc || "-"}</td>
                     <td>{getSecurityTypeCode(item.security_type_id)}</td>
-                    <td>{item.geneva_record_type_id || "-"}</td>
                     <td>
                       <span style={{ display: "inline-flex", padding: "0.125rem 0.5rem", fontSize: "0.75rem", fontWeight: 600, borderRadius: "9999px", backgroundColor: item.is_active ? "#D1FAE5" : "#FEE2E2", color: item.is_active ? "#065F46" : "#991B1B" }}>
                         {item.is_active ? "Active" : "Inactive"}
@@ -190,7 +188,7 @@ function SecuritySubTypesContent() {
 }
 
 function CreateModal({ securityTypes, onClose, onCreate }: { securityTypes: SecurityTypeData[]; onClose: () => void; onCreate: (data: Partial<SecuritySubTypeData>) => Promise<void> }) {
-  const [formData, setFormData] = useState({ security_subtype_code: "", security_subtype_desc: "", security_type_id: "", geneva_record_type_id: "" });
+  const [formData, setFormData] = useState({ security_subtype_code: "", security_subtype_desc: "", security_type_id: "" });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -216,9 +214,6 @@ function CreateModal({ securityTypes, onClose, onCreate }: { securityTypes: Secu
         security_subtype_desc: formData.security_subtype_desc,
         security_type_id: parseInt(formData.security_type_id),
       };
-      if (formData.geneva_record_type_id) {
-        payload.geneva_record_type_id = parseInt(formData.geneva_record_type_id);
-      }
       await onCreate(payload);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create security subtype");
@@ -268,15 +263,6 @@ function CreateModal({ securityTypes, onClose, onCreate }: { securityTypes: Secu
               ))}
             </select>
           </div>
-          <div className="form-group">
-            <label className="form-label">Geneva ID</label>
-            <input
-              type="number"
-              className="form-input"
-              value={formData.geneva_record_type_id}
-              onChange={(e) => setFormData({ ...formData, geneva_record_type_id: e.target.value })}
-            />
-          </div>
           {error && <div className="modal-error">{error}</div>}
           <div className="modal-actions">
             <button type="button" className="btn btn-outline" onClick={onClose} disabled={isSubmitting}>
@@ -293,7 +279,7 @@ function CreateModal({ securityTypes, onClose, onCreate }: { securityTypes: Secu
 }
 
 function EditModal({ item, securityTypes, onClose, onUpdate }: { item: SecuritySubTypeData; securityTypes: SecurityTypeData[]; onClose: () => void; onUpdate: (id: number, data: Partial<SecuritySubTypeData>) => Promise<void> }) {
-  const [formData, setFormData] = useState({ security_subtype_code: item.security_subtype_code || "", security_subtype_desc: item.security_subtype_desc || "", security_type_id: item.security_type_id?.toString() || "", geneva_record_type_id: item.geneva_record_type_id?.toString() || "" });
+  const [formData, setFormData] = useState({ security_subtype_code: item.security_subtype_code || "", security_subtype_desc: item.security_subtype_desc || "", security_type_id: item.security_type_id?.toString() || "" });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -319,9 +305,6 @@ function EditModal({ item, securityTypes, onClose, onUpdate }: { item: SecurityS
         security_subtype_desc: formData.security_subtype_desc,
         security_type_id: parseInt(formData.security_type_id),
       };
-      if (formData.geneva_record_type_id) {
-        payload.geneva_record_type_id = parseInt(formData.geneva_record_type_id);
-      }
       await onUpdate(item.id, payload);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update security subtype");
@@ -370,15 +353,6 @@ function EditModal({ item, securityTypes, onClose, onUpdate }: { item: SecurityS
                 </option>
               ))}
             </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Geneva ID</label>
-            <input
-              type="number"
-              className="form-input"
-              value={formData.geneva_record_type_id}
-              onChange={(e) => setFormData({ ...formData, geneva_record_type_id: e.target.value })}
-            />
           </div>
           {error && <div className="modal-error">{error}</div>}
           <div className="modal-actions">
