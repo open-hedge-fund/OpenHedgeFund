@@ -6,7 +6,11 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.database import Base
-from src.models import File, FileImport, Tenant, User  # noqa: F401
+from src.models import (  # noqa: F401
+    AssetType, Continent, Country, Currency, Custodian,
+    File, FileImport, Fund, MarketCategory,
+    SecuritySubType, SecurityType, Tenant, User,
+)
 
 import os
 
