@@ -118,7 +118,7 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { label: "Dashboard", icon: DashboardIcon, href: "/" },
+  { label: "Portfolio Report", icon: DashboardIcon, href: "/portfolio-report" },
   { label: "Import Data", icon: ImportIcon, href: "/import-data" },
   { label: "Security Master", icon: SecurityMasterIcon, href: "/security-master" },
   { label: "Portfolio", icon: PortfolioIcon, href: "#", badge: "Soon" },
