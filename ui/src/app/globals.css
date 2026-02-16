@@ -897,7 +897,196 @@ img, svg {
   border-radius: var(--radius-md);
 }
 
-/* ---------- 9. Loading Screen ---------- */
+/* ---------- 9. Import Data Page ---------- */
+.import-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+}
+
+.import-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.import-header h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.import-header p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.import-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.import-file-select-row {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: flex-end;
+}
+
+.import-file-select-wrapper {
+  flex: 1;
+}
+
+.import-choose-btn-wrapper {
+  flex-shrink: 0;
+}
+
+.import-file-preview {
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+}
+
+.import-file-preview-info {
+  background-color: #EFF6FF;
+  border-color: #BFDBFE;
+}
+
+.import-file-preview-success {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.import-file-preview-error {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+.import-file-preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.import-file-preview-info-col {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.import-file-preview-info-col svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.import-file-preview-name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.import-file-preview-size {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.import-message {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.import-message-success {
+  color: #15803D;
+}
+
+.import-message-error {
+  color: var(--color-error);
+}
+
+.import-supported-formats {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-light);
+}
+
+.import-history-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.import-empty {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.import-empty svg {
+  margin: 0 auto var(--spacing-md);
+  color: var(--color-text-light);
+}
+
+.import-empty-sub {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-xs);
+}
+
+.import-file-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.import-file-cell-name {
+  font-weight: 500;
+}
+
+.import-file-cell-size {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.import-status-badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  text-transform: capitalize;
+}
+
+.import-status-pending {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.import-status-processing {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.import-status-completed {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.import-status-failed {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.import-result-success {
+  font-size: var(--font-size-xs);
+  color: #15803D;
+}
+
+.import-result-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}
+
+/* ---------- 10. Loading Screen ---------- */
 .loading-screen {
   display: flex;
   flex-direction: column;

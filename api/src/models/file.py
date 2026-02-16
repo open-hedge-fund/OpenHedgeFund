@@ -45,3 +45,4 @@ class File(Base):
     )
 
     tenant: Mapped["Tenant"] = relationship(back_populates="files")  # noqa: F821
+    imports: Mapped[list["FileImport"]] = relationship(back_populates="file")  # noqa: F821
