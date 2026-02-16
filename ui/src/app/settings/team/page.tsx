@@ -8,12 +8,137 @@ import { useAuth } from "@/context/AuthContext";
 import { userApi, UserData } from "@/lib/api";
 import { TeamIcon } from "@/components/icons/SidebarIcons";
 
+function AddUserModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState<"member" | "admin">("member");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    try {
+      await userApi.addUser({
+        email,
+        password,
+        first_name: firstName || undefined,
+        last_name: lastName || undefined,
+        role,
+      });
+      onCreated();
+      onClose();
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
+      setError(axiosErr.response?.data?.detail || "Failed to create user.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-content">
+        <h3>Add Team Member</h3>
+        {error && <div className="modal-error">{error}</div>}
+        <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">First Name</label>
+              <input
+                className="form-input"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First name"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last Name</label>
+              <input
+                className="form-input"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last name"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email *</label>
+            <input
+              className="form-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@example.com"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password *</label>
+            <input
+              className="form-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Minimum 8 characters"
+              required
+              minLength={8}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Role</label>
+            <select
+              className="form-select"
+              value={role}
+              onChange={(e) => setRole(e.target.value as "member" | "admin")}
+            >
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onClose}
+              disabled={saving}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={saving}
+            >
+              {saving ? "Creating..." : "Add User"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function TeamContent() {
   const { user } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const isAdmin = user?.is_superuser || user?.role === "admin";
 
@@ -92,6 +217,12 @@ function TeamContent() {
             <h2>Team Members</h2>
             <p>Manage your team and assign roles</p>
           </div>
+          <button
+            className="btn btn-primary btn-add-file"
+            onClick={() => setShowAddModal(true)}
+          >
+            + Add User
+          </button>
         </div>
       </div>
 
@@ -102,6 +233,8 @@ function TeamContent() {
               <th>Member</th>
               <th>Email</th>
               <th>Role</th>
+              <th>Status</th>
+              <th>Created</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -127,6 +260,18 @@ function TeamContent() {
                     >
                       {member.is_superuser ? "Superadmin" : member.role === "admin" ? "Admin" : "Member"}
                     </span>
+                  </td>
+                  <td>
+                    <span
+                      className={`status-badge status-badge-${member.is_active ? "active" : "inactive"}`}
+                    >
+                      {member.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td>
+                    {member.created_at
+                      ? new Date(member.created_at).toLocaleDateString()
+                      : "—"}
                   </td>
                   <td>
                     {member.is_superuser ? (
@@ -161,6 +306,13 @@ function TeamContent() {
           </div>
         )}
       </div>
+
+      {showAddModal && (
+        <AddUserModal
+          onClose={() => setShowAddModal(false)}
+          onCreated={loadUsers}
+        />
+      )}
     </div>
   );
 }

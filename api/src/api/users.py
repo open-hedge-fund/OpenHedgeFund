@@ -1,15 +1,46 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_users.password import PasswordHelper
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.permissions import require_tenant_admin
 from src.database import get_async_session
 from src.models.user import User
-from src.schemas.user import UserRead, UserRoleUpdate
+from src.schemas.user import UserCreateInTenant, UserRead, UserRoleUpdate
+
+password_helper = PasswordHelper()
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.post("/", response_model=UserRead, status_code=201)
+async def create_user_in_tenant(
+    user_in: UserCreateInTenant,
+    user: User = Depends(require_tenant_admin),
+    session: AsyncSession = Depends(get_async_session),
+):
+    existing = await session.execute(select(User).where(User.email == user_in.email))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="A user with this email already exists")
+
+    new_user = User(
+        id=uuid.uuid4(),
+        email=user_in.email,
+        hashed_password=password_helper.hash(user_in.password),
+        first_name=user_in.first_name,
+        last_name=user_in.last_name,
+        role=user_in.role,
+        tenant_id=user.tenant_id,
+        is_active=True,
+        is_superuser=False,
+        is_verified=False,
+    )
+    session.add(new_user)
+    await session.commit()
+    await session.refresh(new_user)
+    return new_user
 
 
 @router.get("/", response_model=list[UserRead])

@@ -8,7 +8,6 @@ import {
   AnalyticsIcon,
   TradingIcon,
   RiskIcon,
-  TeamIcon,
   SettingsIcon,
   FileIcon,
   ImportIcon,
@@ -60,7 +59,6 @@ const settingsItems: MenuItem[] = [
   { label: "Custodians", icon: DataIcon, href: "/settings/custodians" },
   { label: "Funds", icon: DataIcon, href: "/settings/funds" },
   { label: "Market Categories", icon: DataIcon, href: "/settings/market-categories" },
-  { label: "Team", icon: TeamIcon, href: "/settings/team", requiresAdmin: true },
   { label: "Settings", icon: SettingsIcon, href: "#", badge: "Soon" },
 ];
 
