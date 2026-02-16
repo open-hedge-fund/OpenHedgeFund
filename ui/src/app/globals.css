@@ -590,8 +590,7 @@ img, svg {
 
 /* 7e. Dashboard content */
 .dashboard-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   padding: var(--spacing-2xl) var(--spacing-xl);
   flex: 1;
 }
@@ -628,7 +627,277 @@ img, svg {
   border-color: var(--color-text-light);
 }
 
-/* ---------- 8. Loading Screen ---------- */
+/* ---------- 8. Files Page ---------- */
+.files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
+}
+
+.files-header h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.files-header p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.files-card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-lg);
+}
+
+.files-search {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.files-search::placeholder {
+  color: var(--color-text-light);
+}
+
+.files-search:focus {
+  border-color: var(--color-input-focus-border);
+  box-shadow: 0 0 0 3px rgba(60, 80, 224, 0.12);
+}
+
+.files-table-wrapper {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.files-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.files-table thead {
+  background-color: var(--color-body-bg);
+}
+
+.files-table th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.files-table td {
+  padding: 1rem 1.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.files-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.files-table tbody tr:hover {
+  background-color: var(--color-body-bg);
+}
+
+.files-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.file-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.file-name-cell svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.file-type-badge {
+  display: inline-flex;
+  padding: 0.125rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.file-type-csv {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.file-type-pipe {
+  background-color: #EDE9FE;
+  color: #5B21B6;
+}
+
+.file-type-default {
+  background-color: var(--color-body-bg);
+  color: var(--color-text-secondary);
+}
+
+
+.file-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.file-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.file-action-edit {
+  color: var(--color-primary);
+}
+
+.file-action-edit:hover {
+  background-color: rgba(60, 80, 224, 0.08);
+}
+
+.file-action-delete {
+  color: var(--color-error);
+}
+
+.file-action-delete:hover {
+  background-color: var(--color-error-bg);
+}
+
+.files-empty {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  color: var(--color-text-secondary);
+}
+
+.btn-add-file {
+  width: auto;
+  padding: 0.5rem 1.25rem;
+  font-size: var(--font-size-sm);
+  gap: 0.375rem;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-2xl);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 var(--spacing-md);
+}
+
+.modal-content h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.modal-form .form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-form .form-input,
+.modal-form .form-select {
+  padding: 0.625rem 0.875rem;
+  font-size: var(--font-size-sm);
+}
+
+.form-select {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: pointer;
+  appearance: auto;
+}
+
+.form-select:focus {
+  border-color: var(--color-input-focus-border);
+  box-shadow: 0 0 0 3px rgba(60, 80, 224, 0.12);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-xl);
+}
+
+.modal-actions .btn {
+  width: auto;
+  padding: 0.5rem 1.25rem;
+  font-size: var(--font-size-sm);
+}
+
+.modal-error {
+  padding: 0.75rem 1rem;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+}
+
+/* ---------- 9. Loading Screen ---------- */
 .loading-screen {
   display: flex;
   flex-direction: column;
