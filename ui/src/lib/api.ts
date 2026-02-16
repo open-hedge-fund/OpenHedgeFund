@@ -108,4 +108,275 @@ export const fileImportApi = {
   },
 };
 
+/* ─── Asset Types ─── */
+export interface AssetTypeData {
+  id: number;
+  asset_type_code: string;
+  asset_type_desc: string | null;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const assetTypeApi = {
+  getAll: async (): Promise<AssetTypeData[]> => {
+    const response = await api.get("/asset-types/");
+    return response.data;
+  },
+  create: async (data: Partial<AssetTypeData>): Promise<AssetTypeData> => {
+    const response = await api.post("/asset-types/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<AssetTypeData>): Promise<AssetTypeData> => {
+    const response = await api.patch(`/asset-types/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/asset-types/${id}`);
+  },
+};
+
+/* ─── Continents ─── */
+export interface ContinentData {
+  id: number;
+  continent_code: string;
+  continent_desc: string | null;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const continentApi = {
+  getAll: async (): Promise<ContinentData[]> => {
+    const response = await api.get("/continents/");
+    return response.data;
+  },
+  create: async (data: Partial<ContinentData>): Promise<ContinentData> => {
+    const response = await api.post("/continents/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<ContinentData>): Promise<ContinentData> => {
+    const response = await api.patch(`/continents/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/continents/${id}`);
+  },
+};
+
+/* ─── Countries ─── */
+export interface CountryData {
+  id: number;
+  country_code: string;
+  country_desc: string;
+  country_code_iso_alpha3: string | null;
+  geographic_region: string | null;
+  continent: string | null;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const countryApi = {
+  getAll: async (): Promise<CountryData[]> => {
+    const response = await api.get("/countries/");
+    return response.data;
+  },
+  create: async (data: Partial<CountryData>): Promise<CountryData> => {
+    const response = await api.post("/countries/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<CountryData>): Promise<CountryData> => {
+    const response = await api.patch(`/countries/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/countries/${id}`);
+  },
+};
+
+/* ─── Currencies ─── */
+export interface CurrencyData {
+  id: number;
+  ccy: string;
+  ccy_des: string;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const currencyApi = {
+  getAll: async (): Promise<CurrencyData[]> => {
+    const response = await api.get("/currencies/");
+    return response.data;
+  },
+  create: async (data: Partial<CurrencyData>): Promise<CurrencyData> => {
+    const response = await api.post("/currencies/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<CurrencyData>): Promise<CurrencyData> => {
+    const response = await api.patch(`/currencies/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/currencies/${id}`);
+  },
+};
+
+/* ─── Custodians ─── */
+export interface CustodianData {
+  id: number;
+  custodian_name: string;
+  custodian_code: string;
+  account_number: string;
+  email: string;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const custodianApi = {
+  getAll: async (): Promise<CustodianData[]> => {
+    const response = await api.get("/custodians/");
+    return response.data;
+  },
+  create: async (data: Partial<CustodianData>): Promise<CustodianData> => {
+    const response = await api.post("/custodians/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<CustodianData>): Promise<CustodianData> => {
+    const response = await api.patch(`/custodians/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/custodians/${id}`);
+  },
+};
+
+/* ─── Funds ─── */
+export interface FundData {
+  id: number;
+  fund_code: string;
+  fund_description: string;
+  is_active: boolean;
+  is_offshore: boolean;
+  is_master: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const fundApi = {
+  getAll: async (): Promise<FundData[]> => {
+    const response = await api.get("/funds/");
+    return response.data;
+  },
+  create: async (data: Partial<FundData>): Promise<FundData> => {
+    const response = await api.post("/funds/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<FundData>): Promise<FundData> => {
+    const response = await api.patch(`/funds/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/funds/${id}`);
+  },
+};
+
+/* ─── Market Categories ─── */
+export interface MarketCategoryData {
+  id: number;
+  market_category_code: string;
+  market_category_desc: string | null;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const marketCategoryApi = {
+  getAll: async (): Promise<MarketCategoryData[]> => {
+    const response = await api.get("/market-categories/");
+    return response.data;
+  },
+  create: async (data: Partial<MarketCategoryData>): Promise<MarketCategoryData> => {
+    const response = await api.post("/market-categories/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<MarketCategoryData>): Promise<MarketCategoryData> => {
+    const response = await api.patch(`/market-categories/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/market-categories/${id}`);
+  },
+};
+
+/* ─── Security Types ─── */
+export interface SecurityTypeData {
+  id: number;
+  security_type_code: string;
+  security_type_desc: string;
+  settlement_days: number | null;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const securityTypeApi = {
+  getAll: async (): Promise<SecurityTypeData[]> => {
+    const response = await api.get("/security-types/");
+    return response.data;
+  },
+  create: async (data: Partial<SecurityTypeData>): Promise<SecurityTypeData> => {
+    const response = await api.post("/security-types/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<SecurityTypeData>): Promise<SecurityTypeData> => {
+    const response = await api.patch(`/security-types/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/security-types/${id}`);
+  },
+};
+
+/* ─── Security SubTypes ─── */
+export interface SecuritySubTypeData {
+  id: number;
+  security_subtype_code: string;
+  security_subtype_desc: string;
+  security_type_id: number;
+  geneva_record_type_id: number | null;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const securitySubTypeApi = {
+  getAll: async (): Promise<SecuritySubTypeData[]> => {
+    const response = await api.get("/security-subtypes/");
+    return response.data;
+  },
+  create: async (data: Partial<SecuritySubTypeData>): Promise<SecuritySubTypeData> => {
+    const response = await api.post("/security-subtypes/", data);
+    return response.data;
+  },
+  update: async (id: number, data: Partial<SecuritySubTypeData>): Promise<SecuritySubTypeData> => {
+    const response = await api.patch(`/security-subtypes/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/security-subtypes/${id}`);
+  },
+};
+
 export default api;
