@@ -1307,7 +1307,6 @@ img, svg {
   padding: var(--spacing-2xl);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
-  max-width: 600px;
 }
 
 .profile-page-card h2 {
