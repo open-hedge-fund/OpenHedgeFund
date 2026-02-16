@@ -7,6 +7,7 @@ from src.models.file import File
 from src.models.file_import import FileImport
 from src.models.fund import Fund
 from src.models.market_category import MarketCategory
+from src.models.security import Security
 from src.models.security_subtype import SecuritySubType
 from src.models.security_type import SecurityType
 from src.models.tenant import Tenant
@@ -22,6 +23,7 @@ __all__ = [
     "FileImport",
     "Fund",
     "MarketCategory",
+    "Security",
     "SecuritySubType",
     "SecurityType",
     "Tenant",

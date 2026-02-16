@@ -378,6 +378,99 @@ export const securitySubTypeApi = {
   },
 };
 
+/* ─── Securities ─── */
+export interface SecurityData {
+  id: number;
+  symbol: string | null;
+  security_des: string | null;
+  id_1: string | null;
+  id_2: string | null;
+  id_3: string | null;
+  cntry_of_risk_id: number | null;
+  cntry_of_domicile_id: number | null;
+  is_active: boolean;
+  coupon: number | null;
+  maturity_date: string | null;
+  issue_date: string | null;
+  first_coupon_date: string | null;
+  penultimate_coupon_date: string | null;
+  last_update_date: string | null;
+  ccy_id: number | null;
+  country_id: number | null;
+  security_subtype_id: number | null;
+  asset_type_id: number | null;
+  market_category_id: number | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface SecurityCreateData {
+  symbol?: string;
+  security_des?: string;
+  id_1?: string;
+  id_2?: string;
+  id_3?: string;
+  cntry_of_risk_id?: number;
+  cntry_of_domicile_id?: number;
+  is_active?: boolean;
+  coupon?: number;
+  maturity_date?: string;
+  issue_date?: string;
+  first_coupon_date?: string;
+  penultimate_coupon_date?: string;
+  last_update_date?: string;
+  ccy_id?: number;
+  country_id?: number;
+  security_subtype_id?: number;
+  asset_type_id?: number;
+  market_category_id?: number;
+}
+
+export interface SecurityUpdateData {
+  symbol?: string;
+  security_des?: string;
+  id_1?: string;
+  id_2?: string;
+  id_3?: string;
+  cntry_of_risk_id?: number;
+  cntry_of_domicile_id?: number;
+  is_active?: boolean;
+  coupon?: number;
+  maturity_date?: string;
+  issue_date?: string;
+  first_coupon_date?: string;
+  penultimate_coupon_date?: string;
+  last_update_date?: string;
+  ccy_id?: number;
+  country_id?: number;
+  security_subtype_id?: number;
+  asset_type_id?: number;
+  market_category_id?: number;
+}
+
+export const securityApi = {
+  getAll: async (skip = 0, limit = 500): Promise<SecurityData[]> => {
+    const response = await api.get("/securities/", { params: { skip, limit } });
+    return response.data;
+  },
+  create: async (data: SecurityCreateData): Promise<SecurityData> => {
+    const response = await api.post("/securities/", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<SecurityData> => {
+    const response = await api.get(`/securities/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: SecurityUpdateData): Promise<SecurityData> => {
+    const response = await api.patch(`/securities/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/securities/${id}`);
+  },
+};
+
 /* ─── Users ─── */
 export interface UserData {
   id: string;

@@ -10,6 +10,7 @@ from src.api.file_imports import router as file_imports_router
 from src.api.files import router as files_router
 from src.api.funds import router as funds_router
 from src.api.market_categories import router as market_categories_router
+from src.api.securities import router as securities_router
 from src.api.security_subtypes import router as security_subtypes_router
 from src.api.security_types import router as security_types_router
 from src.api.tenants import router as tenants_router
@@ -57,6 +58,7 @@ app.include_router(currencies_router)
 app.include_router(custodians_router)
 app.include_router(funds_router)
 app.include_router(market_categories_router)
+app.include_router(securities_router)
 app.include_router(security_subtypes_router)
 app.include_router(security_types_router)
 
