@@ -4,14 +4,11 @@ import { usePathname } from "next/navigation";
 import { LogoIcon } from "@/components/Brand";
 import {
   DashboardIcon,
-  PortfolioIcon,
-  AnalyticsIcon,
-  TradingIcon,
-  RiskIcon,
   FileIcon,
   ImportIcon,
   CloseIcon,
   SecurityMasterIcon,
+  ReportIcon,
 } from "@/components/icons/SidebarIcons";
 import { useAuth } from "@/context/AuthContext";
 
@@ -118,13 +115,16 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { label: "Portfolio Report", icon: DashboardIcon, href: "/portfolio-report" },
-  { label: "Import Data", icon: ImportIcon, href: "/import-data" },
+  { label: "Portfolio View", icon: DashboardIcon, href: "/portfolio-view" },
   { label: "Security Master", icon: SecurityMasterIcon, href: "/security-master" },
-  { label: "Portfolio", icon: PortfolioIcon, href: "#", badge: "Soon" },
-  { label: "Analytics", icon: AnalyticsIcon, href: "#", badge: "Soon" },
-  { label: "Trading", icon: TradingIcon, href: "#", badge: "Soon" },
-  { label: "Risk Management", icon: RiskIcon, href: "#", badge: "Soon" },
+  { label: "Import Data", icon: ImportIcon, href: "/import-data" },
+];
+
+const reportItems: MenuItem[] = [
+  { label: "Country Exposure", icon: ReportIcon, href: "/country-exposure" },
+  { label: "Currency Exposure", icon: ReportIcon, href: "/currency-exposure" },
+  { label: "Sector Exposure", icon: ReportIcon, href: "/sector-exposure" },
+  { label: "Asset Type Exposure", icon: ReportIcon, href: "/asset-type-exposure" },
 ];
 
 const settingsItems: MenuItem[] = [
@@ -175,6 +175,26 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <div className="sidebar-section-title">Menu</div>
           <ul className="sidebar-menu">
             {menuItems.map((item) => (
+              <li key={item.label} className="sidebar-menu-item">
+                <a
+                  href={item.href}
+                  className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}
+                >
+                  <span className="sidebar-menu-link-icon">
+                    <item.icon size={22} />
+                  </span>
+                  <span className="sidebar-menu-link-label">{item.label}</span>
+                  {item.badge && (
+                    <span className="sidebar-badge">{item.badge}</span>
+                  )}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <div className="sidebar-section-title">Reports</div>
+          <ul className="sidebar-menu">
+            {reportItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
                 <a
                   href={item.href}
