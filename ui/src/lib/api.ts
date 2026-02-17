@@ -471,6 +471,339 @@ export const securityApi = {
   },
 };
 
+/* ─── Prices ─── */
+export interface PriceData {
+  id: number;
+  price_date: string;
+  security_id: number;
+  currency_id: number;
+  last: number;
+  next_day_open: number | null;
+  last_modified_by: string | null;
+  last_modified_on: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface PriceCreateData {
+  price_date: string;
+  security_id: number;
+  currency_id: number;
+  last: number;
+  next_day_open?: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export interface PriceUpdateData {
+  price_date?: string;
+  security_id?: number;
+  currency_id?: number;
+  last?: number;
+  next_day_open?: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export const priceApi = {
+  getAll: async (params?: { price_date?: string; security_id?: number; skip?: number; limit?: number }): Promise<PriceData[]> => {
+    const response = await api.get("/prices/", { params });
+    return response.data;
+  },
+  create: async (data: PriceCreateData): Promise<PriceData> => {
+    const response = await api.post("/prices/", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<PriceData> => {
+    const response = await api.get(`/prices/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: PriceUpdateData): Promise<PriceData> => {
+    const response = await api.patch(`/prices/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/prices/${id}`);
+  },
+};
+
+/* ─── FX Rates ─── */
+export interface FxRateData {
+  id: number;
+  rate_date: string;
+  ref_currency_id: number;
+  currency_id: number;
+  direct: number;
+  indirect: number;
+  last_modified_by: string | null;
+  last_modified_on: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface FxRateCreateData {
+  rate_date: string;
+  ref_currency_id: number;
+  currency_id: number;
+  direct: number;
+  indirect: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export interface FxRateUpdateData {
+  rate_date?: string;
+  ref_currency_id?: number;
+  currency_id?: number;
+  direct?: number;
+  indirect?: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export const fxRateApi = {
+  getAll: async (params?: { rate_date?: string; ref_currency_id?: number; currency_id?: number; skip?: number; limit?: number }): Promise<FxRateData[]> => {
+    const response = await api.get("/fx-rates/", { params });
+    return response.data;
+  },
+  create: async (data: FxRateCreateData): Promise<FxRateData> => {
+    const response = await api.post("/fx-rates/", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<FxRateData> => {
+    const response = await api.get(`/fx-rates/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: FxRateUpdateData): Promise<FxRateData> => {
+    const response = await api.patch(`/fx-rates/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/fx-rates/${id}`);
+  },
+};
+
+/* ─── Positions ─── */
+export interface PositionData {
+  id: number;
+  position_date: string;
+  security_id: number;
+  fund_id: number;
+  side: string;
+  quantity: number | null;
+  cost: number | null;
+  price_local: number | null;
+  price_base: number | null;
+  outstanding_shares: number | null;
+  market_cap: number | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface PositionCreateData {
+  position_date: string;
+  security_id: number;
+  fund_id: number;
+  side: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export interface PositionUpdateData {
+  position_date?: string;
+  security_id?: number;
+  fund_id?: number;
+  side?: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export const positionApi = {
+  getAll: async (params?: { position_date?: string; security_id?: number; fund_id?: number; skip?: number; limit?: number }): Promise<PositionData[]> => {
+    const response = await api.get("/positions/", { params });
+    return response.data;
+  },
+  create: async (data: PositionCreateData): Promise<PositionData> => {
+    const response = await api.post("/positions/", data);
+    return response.data;
+  },
+  createBulk: async (data: PositionCreateData[]): Promise<PositionData[]> => {
+    const response = await api.post("/positions/bulk", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<PositionData> => {
+    const response = await api.get(`/positions/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: PositionUpdateData): Promise<PositionData> => {
+    const response = await api.patch(`/positions/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/positions/${id}`);
+  },
+};
+
+/* ─── Holdings ─── */
+export interface HoldingData {
+  id: number;
+  holding_date: string;
+  security_id: number;
+  fund_id: number;
+  custodian_id: number;
+  side: string;
+  quantity: number | null;
+  cost: number | null;
+  price_local: number | null;
+  price_base: number | null;
+  outstanding_shares: number | null;
+  market_cap: number | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface HoldingCreateData {
+  holding_date: string;
+  security_id: number;
+  fund_id: number;
+  custodian_id: number;
+  side: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export interface HoldingUpdateData {
+  holding_date?: string;
+  security_id?: number;
+  fund_id?: number;
+  custodian_id?: number;
+  side?: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export const holdingApi = {
+  getAll: async (params?: { holding_date?: string; security_id?: number; fund_id?: number; custodian_id?: number; skip?: number; limit?: number }): Promise<HoldingData[]> => {
+    const response = await api.get("/holdings/", { params });
+    return response.data;
+  },
+  create: async (data: HoldingCreateData): Promise<HoldingData> => {
+    const response = await api.post("/holdings/", data);
+    return response.data;
+  },
+  createBulk: async (data: HoldingCreateData[]): Promise<HoldingData[]> => {
+    const response = await api.post("/holdings/bulk", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<HoldingData> => {
+    const response = await api.get(`/holdings/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: HoldingUpdateData): Promise<HoldingData> => {
+    const response = await api.patch(`/holdings/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/holdings/${id}`);
+  },
+};
+
+/* ─── Staging Holdings ─── */
+export interface StagingHoldingData {
+  id: number;
+  account: string | null;
+  account_name: string | null;
+  symbol: string | null;
+  security_description: string | null;
+  issuing_country: string | null;
+  local_currency: string | null;
+  asset_class: string | null;
+  side: string | null;
+  quantity: number | null;
+  cost: number | null;
+  price_local: number | null;
+  price_base: number | null;
+  outstanding_shares: number | null;
+  market_cap: number | null;
+  underlier: string | null;
+  sedol: string | null;
+  isin: string | null;
+  cusip: string | null;
+  file_id: number | null;
+  row_number: number | null;
+  runid: string | null;
+  tenant_id: string;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface StagingHoldingCreateData {
+  account?: string;
+  account_name?: string;
+  symbol?: string;
+  security_description?: string;
+  issuing_country?: string;
+  local_currency?: string;
+  asset_class?: string;
+  side?: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+  underlier?: string;
+  sedol?: string;
+  isin?: string;
+  cusip?: string;
+  file_id?: number;
+  row_number?: number;
+  runid?: string;
+}
+
+export const stagingHoldingApi = {
+  getAll: async (params?: { runid?: string; file_id?: number; skip?: number; limit?: number }): Promise<StagingHoldingData[]> => {
+    const response = await api.get("/staging-holdings/", { params });
+    return response.data;
+  },
+  create: async (data: StagingHoldingCreateData): Promise<StagingHoldingData> => {
+    const response = await api.post("/staging-holdings/", data);
+    return response.data;
+  },
+  createBulk: async (data: StagingHoldingCreateData[]): Promise<StagingHoldingData[]> => {
+    const response = await api.post("/staging-holdings/bulk", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<StagingHoldingData> => {
+    const response = await api.get(`/staging-holdings/${id}`);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/staging-holdings/${id}`);
+  },
+};
+
 /* ─── Users ─── */
 export interface UserData {
   id: string;
