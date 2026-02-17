@@ -4,6 +4,7 @@ from celery import Celery
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File as FastAPIFile
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.config import settings
 from src.core.auth import current_active_user
@@ -17,6 +18,15 @@ celery_app = Celery("openhedgefund", broker=settings.redis_url)
 router = APIRouter(prefix="/file-imports", tags=["file-imports"])
 
 
+def _with_name(fi: FileImport) -> FileImportSchema:
+    """Convert a FileImport to schema, adding imported_by_name from the relationship."""
+    data = FileImportSchema.model_validate(fi)
+    if fi.imported_by:
+        parts = [fi.imported_by.first_name, fi.imported_by.last_name]
+        data.imported_by_name = " ".join(p for p in parts if p) or None
+    return data
+
+
 @router.get("/", response_model=list[FileImportSchema])
 async def list_file_imports(
     skip: int = Query(0, ge=0),
@@ -25,14 +35,15 @@ async def list_file_imports(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport)
+    query = select(FileImport).options(selectinload(FileImport.imported_by))
     if not user.is_superuser:
         query = query.where(FileImport.tenant_id == user.tenant_id)
     if status:
         query = query.where(FileImport.status == status)
     query = query.order_by(desc(FileImport.created_at)).offset(skip).limit(limit)
     result = await session.execute(query)
-    return result.scalars().all()
+    imports = result.scalars().all()
+    return [_with_name(fi) for fi in imports]
 
 
 @router.get("/{import_id}", response_model=FileImportSchema)
@@ -41,14 +52,14 @@ async def get_file_import(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport).where(FileImport.id == import_id)
+    query = select(FileImport).options(selectinload(FileImport.imported_by)).where(FileImport.id == import_id)
     if not user.is_superuser:
         query = query.where(FileImport.tenant_id == user.tenant_id)
     result = await session.execute(query)
     file_import = result.scalar_one_or_none()
     if not file_import:
         raise HTTPException(status_code=404, detail="File import not found")
-    return file_import
+    return _with_name(file_import)
 
 
 @router.post("/upload", response_model=FileImportSchema, status_code=201)

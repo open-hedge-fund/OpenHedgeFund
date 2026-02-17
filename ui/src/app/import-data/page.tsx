@@ -27,14 +27,14 @@ function formatDuration(seconds: number | null): string {
 }
 
 function getStatusBadgeClass(status: string): string {
-  switch (status) {
-    case "pending":
+  switch (status.toUpperCase()) {
+    case "RECEIVED":
       return "import-status-badge import-status-pending";
-    case "processing":
+    case "PROCESSING":
       return "import-status-badge import-status-processing";
-    case "completed":
+    case "PROCESSED":
       return "import-status-badge import-status-completed";
-    case "failed":
+    case "FAILED":
       return "import-status-badge import-status-failed";
     default:
       return "import-status-badge";
@@ -361,9 +361,10 @@ function ImportDataContent() {
                 <tr>
                   <th>File</th>
                   <th>Status</th>
-                  <th>Started</th>
-                  <th>Duration</th>
-                  <th>Results</th>
+                  <th>Imported By</th>
+                  <th>Completed</th>
+                  <th>Rows</th>
+                  <th>Error</th>
                 </tr>
               </thead>
               <tbody>
@@ -386,14 +387,14 @@ function ImportDataContent() {
                         {imp.status}
                       </span>
                     </td>
-                    <td>{formatDate(imp.started_at)}</td>
-                    <td>{formatDuration(imp.duration_seconds)}</td>
+                    <td>{imp.imported_by_name || "—"}</td>
+                    <td>{formatDate(imp.completed_at)}</td>
                     <td>
-                      {imp.status === "completed" ? (
+                      {imp.rows_processed !== null || imp.rows_failed !== null ? (
                         <div>
                           {imp.rows_processed !== null && (
                             <div className="import-result-success">
-                              {imp.rows_processed} rows processed
+                              {imp.rows_processed} processed
                             </div>
                           )}
                           {imp.rows_failed !== null && imp.rows_failed > 0 && (
@@ -402,14 +403,18 @@ function ImportDataContent() {
                             </div>
                           )}
                         </div>
-                      ) : imp.status === "failed" && imp.error_message ? (
-                        <div className="import-result-error">
-                          {imp.error_message.substring(0, 50)}...
+                      ) : (
+                        <span style={{ color: "var(--color-text-light)" }}>—</span>
+                      )}
+                    </td>
+                    <td>
+                      {imp.error_message ? (
+                        <div className="import-result-error" title={imp.error_message}>
+                          {imp.error_message.substring(0, 60)}
+                          {imp.error_message.length > 60 ? "..." : ""}
                         </div>
                       ) : (
-                        <span style={{ color: "var(--color-text-light)" }}>
-                          —
-                        </span>
+                        <span style={{ color: "var(--color-text-light)" }}>—</span>
                       )}
                     </td>
                   </tr>

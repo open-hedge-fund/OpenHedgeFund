@@ -86,6 +86,9 @@ export interface FileImportData {
   completed_at: string | null;
   duration_seconds: number | null;
   error_message: string | null;
+  error_details: Record<string, unknown> | null;
+  imported_by_user_id: string | null;
+  imported_by_name: string | null;
   created_at: string;
 }
 

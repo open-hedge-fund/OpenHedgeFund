@@ -41,6 +41,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['file_id'], ['files.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['imported_by_user_id'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
+    sa.CheckConstraint("status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'FAILED')", name='ck_file_imports_status'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
