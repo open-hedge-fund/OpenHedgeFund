@@ -95,7 +95,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         df = load_to_dataframe(file_content, file_type)
 
         # TODO: Apply column mappings from mappings table
-        # TODO: Insert rows into staging_holdings
+        # TODO: Insert rows into holdings
 
         # Insert PROCESSED record
         completed_at = datetime.now(timezone.utc)

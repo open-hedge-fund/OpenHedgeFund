@@ -12,7 +12,6 @@ from src.models.market_category import MarketCategory
 from src.models.position import Position
 from src.models.price import Price
 from src.models.security import Security
-from src.models.staging_holding import StagingHolding
 from src.models.security_subtype import SecuritySubType
 from src.models.security_type import SecurityType
 from src.models.tenant import Tenant
@@ -33,7 +32,6 @@ __all__ = [
     "Position",
     "Price",
     "Security",
-    "StagingHolding",
     "SecuritySubType",
     "SecurityType",
     "Tenant",

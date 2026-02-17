@@ -1,7 +1,7 @@
 """create holdings table
 
 Revision ID: 6cfe91d9058d
-Revises: 04677156f592
+Revises: 6b843a246174
 Create Date: 2026-02-17 18:16:39.110055
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '6cfe91d9058d'
-down_revision: Union[str, None] = '04677156f592'
+down_revision: Union[str, None] = '6b843a246174'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
