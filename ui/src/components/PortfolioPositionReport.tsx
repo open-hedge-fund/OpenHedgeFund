@@ -98,11 +98,10 @@ export default function PortfolioPositionReport() {
   return (
     <>
       <div className="report-card">
-        <h2 className="report-title">Portfolio Position Report</h2>
+        <h2 className="report-title">Portfolio View</h2>
 
         <div className="report-controls">
           <div className="report-date-group">
-            <label className="form-label">Report Date</label>
             <input
               type="date"
               className="form-input report-date-input"
