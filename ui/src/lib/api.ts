@@ -97,11 +97,15 @@ export const fileImportApi = {
   uploadFile: async (
     file: File,
     fileId?: number,
+    fileType?: string,
   ): Promise<FileImportData> => {
     const formData = new FormData();
     formData.append("file", file);
-    const params = fileId ? `?file_id=${fileId}` : "";
-    const response = await api.post(`/file-imports/upload${params}`, formData, {
+    const searchParams = new URLSearchParams();
+    if (fileId) searchParams.set("file_id", String(fileId));
+    if (fileType) searchParams.set("file_type", fileType);
+    const qs = searchParams.toString();
+    const response = await api.post(`/file-imports/upload${qs ? `?${qs}` : ""}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;

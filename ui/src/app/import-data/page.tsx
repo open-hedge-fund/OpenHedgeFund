@@ -165,7 +165,8 @@ function ImportDataContent() {
 
     try {
       const fileId = selectedFileId ? Number(selectedFileId) : undefined;
-      await fileImportApi.uploadFile(selectedFile, fileId);
+      const selectedConfig = files.find((f) => String(f.id) === selectedFileId);
+      await fileImportApi.uploadFile(selectedFile, fileId, selectedConfig?.type);
       setUploadSuccess("File uploaded successfully.");
       await loadImports();
     } catch (err: unknown) {
