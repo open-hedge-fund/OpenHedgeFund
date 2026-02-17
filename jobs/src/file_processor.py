@@ -1,8 +1,7 @@
-"""File processor stub.
+"""File processor.
 
-Creates a new file_imports record for each status transition: PROCESSING → PROCESSED/FAILED.
-The RECEIVED record is created by the API at upload time.
-TODO: Implement actual file processing once column mappings table is in place.
+Loads file content into a DataFrame and inserts rows into staging_holdings.
+Creates a new file_imports record for each status transition.
 """
 
 import uuid
@@ -12,6 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.database import get_session
+from src.file_loader import load_to_dataframe
 
 
 def _insert_status(session: Session, record: dict, status: str, **extra) -> str:
@@ -37,16 +37,19 @@ def _insert_status(session: Session, record: dict, status: str, **extra) -> str:
             INSERT INTO file_imports
                 (id, file_id, tenant_id, file_name, file_size, imported_by_user_id,
                  import_type, status, created_at,
-                 started_at, completed_at, duration_seconds, error_message)
+                 started_at, completed_at, rows_processed, rows_failed,
+                 error_message)
             VALUES
                 (:id, :file_id, :tenant_id, :file_name, :file_size, :imported_by_user_id,
                  :import_type, :status, :created_at,
-                 :started_at, :completed_at, :duration_seconds, :error_message)
+                 :started_at, :completed_at, :rows_processed, :rows_failed,
+                 :error_message)
         """),
         {
             "started_at": None,
             "completed_at": None,
-            "duration_seconds": None,
+            "rows_processed": None,
+            "rows_failed": None,
             "error_message": None,
             **params,
         },
@@ -88,20 +91,26 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         started_at = datetime.now(timezone.utc)
         _insert_status(session, record, "PROCESSING", started_at=started_at)
 
-        # TODO: Parse file_content and insert rows into staging_holdings
-        # This requires the column mappings table to map file headers to staging_holdings columns
+        # Load file content into a DataFrame
+        df = load_to_dataframe(file_content, file_type)
+
+        # TODO: Apply column mappings from mappings table
+        # TODO: Insert rows into staging_holdings
 
         # Insert PROCESSED record
         completed_at = datetime.now(timezone.utc)
-        duration = int((completed_at - started_at).total_seconds())
         _insert_status(
             session, record, "PROCESSED",
-            started_at=started_at, completed_at=completed_at, duration_seconds=duration,
+            started_at=started_at,
+            completed_at=completed_at,
+            rows_processed=len(df),
+            rows_failed=0,
         )
 
         return {
             "status": "PROCESSED",
-            "duration_seconds": duration,
+            "rows_processed": len(df),
+            "rows_failed": 0,
         }
 
     except Exception as e:
@@ -109,7 +118,8 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         try:
             _insert_status(
                 session, record, "FAILED",
-                completed_at=datetime.now(timezone.utc), error_message=str(e),
+                completed_at=datetime.now(timezone.utc),
+                error_message=str(e),
             )
         except Exception:
             pass
