@@ -13,10 +13,14 @@ app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    # This is a temporary cron job to make sure jobs work with celery.
+    # Also the job calls an open source api.
+    # TODO: update this job to use a commercial pricing source.
+    # I am not sure how reliable it is.
     beat_schedule={
-        "hello-every-5-minutes": {
-            "task": "src.tasks.hello",
-            "schedule": crontab(minute="*/5"),
+        "fetch-fx-rates-daily": {
+            "task": "src.tasks.fetch_fx_rates",
+            "schedule": crontab(hour=6, minute=0),
         },
     },
 )

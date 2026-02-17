@@ -73,6 +73,78 @@ export const fileApi = {
   },
 };
 
+/* ─── Column Mappings (available mapping options) ─── */
+export interface ColumnMappingOption {
+  key: string;
+  label: string;
+  table: string;
+  data_type: string;
+  description: string;
+  db_field: string;
+  csv_column: string;
+}
+
+export interface AvailableMappingsResponse {
+  mappings: ColumnMappingOption[];
+  grouped_mappings: Record<string, ColumnMappingOption[]>;
+  summary: Record<string, string[]>;
+}
+
+export const columnMappingApi = {
+  getAvailableMappings: async (): Promise<AvailableMappingsResponse> => {
+    const response = await api.get("/column-mappings/available-mappings");
+    return response.data;
+  },
+  getMappingKeys: async (): Promise<string[]> => {
+    const response = await api.get("/column-mappings/mapping-keys");
+    return response.data;
+  },
+  validateMapping: async (key: string): Promise<{ valid: boolean; mapping?: ColumnMappingOption; error?: string }> => {
+    const response = await api.get(`/column-mappings/validate-mapping/${key}`);
+    return response.data;
+  },
+};
+
+/* ─── Column Definitions ─── */
+export interface ColumnDefinitionData {
+  id: number;
+  file_id: number;
+  column_name: string;
+  mapping: string;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface ColumnDefinitionCreateData {
+  file_id: number;
+  column_name: string;
+  mapping: string;
+}
+
+export interface ColumnDefinitionUpdateData {
+  column_name?: string;
+  mapping?: string;
+}
+
+export const columnDefinitionApi = {
+  getByFile: async (fileId: number): Promise<ColumnDefinitionData[]> => {
+    const response = await api.get("/column-definitions/", { params: { file_id: fileId } });
+    return response.data;
+  },
+  create: async (data: ColumnDefinitionCreateData): Promise<ColumnDefinitionData> => {
+    const response = await api.post("/column-definitions/", data);
+    return response.data;
+  },
+  update: async (id: number, data: ColumnDefinitionUpdateData): Promise<ColumnDefinitionData> => {
+    const response = await api.patch(`/column-definitions/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/column-definitions/${id}`);
+  },
+};
+
 export interface FileImportData {
   id: string;
   file_id: number | null;
