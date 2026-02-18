@@ -14,7 +14,8 @@ class ColumnDefinition(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     file_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("files.id"), nullable=False)
     column_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    mapping: Mapped[str] = mapped_column(String(255), nullable=False)
+    table_mapping: Mapped[str] = mapped_column(String(255), nullable=False)
+    column_mapping: Mapped[str] = mapped_column(String(255), nullable=False)
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False

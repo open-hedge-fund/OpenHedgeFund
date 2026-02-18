@@ -110,7 +110,8 @@ export interface ColumnDefinitionData {
   id: number;
   file_id: number;
   column_name: string;
-  mapping: string;
+  table_mapping: string;
+  column_mapping: string;
   tenant_id: string;
   created_at: string;
   updated_at: string | null;
@@ -119,12 +120,14 @@ export interface ColumnDefinitionData {
 export interface ColumnDefinitionCreateData {
   file_id: number;
   column_name: string;
-  mapping: string;
+  table_mapping: string;
+  column_mapping: string;
 }
 
 export interface ColumnDefinitionUpdateData {
   column_name?: string;
-  mapping?: string;
+  table_mapping?: string;
+  column_mapping?: string;
 }
 
 export const columnDefinitionApi = {

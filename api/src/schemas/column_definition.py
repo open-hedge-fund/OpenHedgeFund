@@ -6,7 +6,8 @@ from pydantic import BaseModel
 
 class ColumnDefinitionBase(BaseModel):
     column_name: str
-    mapping: str
+    table_mapping: str
+    column_mapping: str
 
 
 class ColumnDefinitionCreate(ColumnDefinitionBase):
@@ -15,7 +16,8 @@ class ColumnDefinitionCreate(ColumnDefinitionBase):
 
 class ColumnDefinitionUpdate(BaseModel):
     column_name: str | None = None
-    mapping: str | None = None
+    table_mapping: str | None = None
+    column_mapping: str | None = None
 
 
 class ColumnDefinitionSchema(ColumnDefinitionBase):

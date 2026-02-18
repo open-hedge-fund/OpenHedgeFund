@@ -135,7 +135,7 @@ function ColumnMappingsPanel({
   const [availableMappings, setAvailableMappings] = useState<AvailableMappingsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [newColumnName, setNewColumnName] = useState("");
-  const [newMapping, setNewMapping] = useState("");
+  const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
@@ -161,11 +161,13 @@ function ColumnMappingsPanel({
   const handleAdd = async () => {
     if (!newColumnName.trim() || !newMapping) return;
     setIsAdding(true);
+    const [tableMapping, columnMapping] = newMapping.split("|");
     try {
       const created = await columnDefinitionApi.create({
         file_id: file.id,
         column_name: newColumnName.trim(),
-        mapping: newMapping,
+        table_mapping: tableMapping,
+        column_mapping: columnMapping,
       });
       setMappings((prev) => [...prev, created]);
       setNewColumnName("");
@@ -207,6 +209,7 @@ function ColumnMappingsPanel({
             <thead>
               <tr>
                 <th>Column Name</th>
+                <th>Table</th>
                 <th>Mapping</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -217,7 +220,10 @@ function ColumnMappingsPanel({
                 <tr key={m.id}>
                   <td>{m.column_name}</td>
                   <td>
-                    <span className="mapping-badge">{m.mapping}</span>
+                    <span className="mapping-badge">{TABLE_DISPLAY_NAMES[m.table_mapping] || m.table_mapping}</span>
+                  </td>
+                  <td>
+                    <span className="mapping-badge">{m.column_mapping}</span>
                   </td>
                   <td>{formatDate(m.created_at)}</td>
                   <td>
@@ -233,7 +239,7 @@ function ColumnMappingsPanel({
               ))}
               {mappings.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="column-mappings-empty">
+                  <td colSpan={5} className="column-mappings-empty">
                     No column mappings defined yet.
                   </td>
                 </tr>
@@ -263,7 +269,7 @@ function ColumnMappingsPanel({
                       label={TABLE_DISPLAY_NAMES[table] || table}
                     >
                       {opts.map((opt) => (
-                        <option key={opt.key} value={opt.key}>
+                        <option key={opt.key} value={`${table}|${opt.key}`}>
                           {opt.key}
                         </option>
                       ))}

@@ -94,8 +94,23 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         # Load file content into a DataFrame
         df = load_to_dataframe(file_content, file_type)
 
-        # TODO: Apply column mappings from mappings table
-        # TODO: Insert rows into holdings
+        #Claude: add a new column called error (where we will the validity of the file)
+
+        #Claude: grab column mappings for the file being processed
+
+        #Claude: lets check if the data is valud. Take the column mappings and check if we are getting bad records. For example if the column mapping says:
+        #   column_name         table_mapping	 column_mapping
+        #   Custodian_ID	    Custodian	    account_number
+        # 
+        #In the example above, (Custodian_ID) - which is the header (column name of actual csv file) of the file shold contain records that match with the records in custodian.account_number column
+        #If the record is not found - we should add an error message. So in the end, we'll have a dataframe - if some columns have bad data, we'll know which column has bad data
+        
+        #Claude: not create a method to figure out where to insert the records. For now, default it to holdings. In the future, we'll have more
+
+        #Claude: Now try to insert the records to the table. All the errors that happen in the process should go to http://localhost:3010/import-data (error column)
+
+        #Claude: make sure you organize the code really well. This is the hardest part of the project. This processed of checking errors should be very generic. In the future, we'll have all sorts of error handlers. Decimal error handler, string error handler, ccy error hander. This should be very flexible
+
 
         # Insert PROCESSED record
         completed_at = datetime.now(timezone.utc)
@@ -127,3 +142,6 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
 
     finally:
         session.close()
+
+
+
