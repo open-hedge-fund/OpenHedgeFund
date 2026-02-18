@@ -11,8 +11,10 @@ class HoldingBase(BaseModel):
     fund_id: int
     custodian_id: int
     side: str
-    quantity: Decimal | None = None
-    cost: Decimal | None = None
+    quantity_start: Decimal | None = None
+    quantity_end: Decimal | None = None
+    cost_local: Decimal | None = None
+    cost_base: Decimal | None = None
     price_local: Decimal | None = None
     price_base: Decimal | None = None
     outstanding_shares: Decimal | None = None
@@ -29,8 +31,10 @@ class HoldingUpdate(BaseModel):
     fund_id: int | None = None
     custodian_id: int | None = None
     side: str | None = None
-    quantity: Decimal | None = None
-    cost: Decimal | None = None
+    quantity_start: Decimal | None = None
+    quantity_end: Decimal | None = None
+    cost_local: Decimal | None = None
+    cost_base: Decimal | None = None
     price_local: Decimal | None = None
     price_base: Decimal | None = None
     outstanding_shares: Decimal | None = None

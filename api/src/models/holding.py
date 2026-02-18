@@ -30,8 +30,10 @@ class Holding(Base):
     side: Mapped[str] = mapped_column(String(5), nullable=False)  # 'Long' or 'Short'
 
     # Numeric fields
-    quantity: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
-    cost: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
+    quantity_start: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
+    quantity_end: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
+    cost_local: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
+    cost_base: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
     price_local: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
     price_base: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
     outstanding_shares: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=0), nullable=True)

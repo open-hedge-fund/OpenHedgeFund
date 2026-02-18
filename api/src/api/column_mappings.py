@@ -26,12 +26,11 @@ async def get_available_mappings(
         formatted.append(
             {
                 "key": key,
-                "label": f"{mapping.description} ({mapping.db_field})",
+                "label": mapping.description,
                 "table": mapping.table_name,
                 "data_type": mapping.data_type,
                 "description": mapping.description,
                 "db_field": mapping.db_field,
-                "csv_column": mapping.csv_column,
             }
         )
 
@@ -75,7 +74,6 @@ async def validate_mapping(
                 "table_name": mapping.table_name,
                 "data_type": mapping.data_type,
                 "description": mapping.description,
-                "csv_column": mapping.csv_column,
             },
         }
     return {

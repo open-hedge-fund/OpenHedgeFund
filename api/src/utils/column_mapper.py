@@ -6,22 +6,13 @@ into the appropriate database fields during the ETL process.
 """
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import Any
-
-
-class TableType(str, Enum):
-    HOLDINGS = "holdings"
-    POSITIONS = "positions"
-    FX_RATES = "fx_rates"
-    PRICES = "prices"
 
 
 @dataclass
 class ColumnMapping:
     """Represents a mapping from a file column to a database field."""
 
-    csv_column: str
     db_field: str
     table_name: str
     data_type: str
@@ -29,256 +20,156 @@ class ColumnMapping:
     description: str = ""
 
 
-# ── All available mappings keyed as "Table.field" ──────────────────────────
+# ── Available mappings ───────────────────────────────────────────────────
+# Simple flat keys — these are what the user picks from the dropdown.
 
 COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
-    # ── Holdings ──────────────────────────────────────────────────────────
-    "Holding.holding_date": ColumnMapping(
-        csv_column="Holding Date",
+    "symbol": ColumnMapping(
+        db_field="symbol",
+        table_name="securities",
+        data_type="string",
+        description="Ticker symbol",
+    ),
+    "id_1": ColumnMapping(
+        db_field="id_1",
+        table_name="securities",
+        data_type="string",
+        description="Security ID 1 (e.g. CUSIP)",
+    ),
+    "id_2": ColumnMapping(
+        db_field="id_2",
+        table_name="securities",
+        data_type="string",
+        description="Security ID 2 (e.g. ISIN)",
+    ),
+    "id_3": ColumnMapping(
+        db_field="id_3",
+        table_name="securities",
+        data_type="string",
+        description="Security ID 3 (e.g. SEDOL)",
+    ),
+    "asset_type_code": ColumnMapping(
+        db_field="asset_type_code",
+        table_name="asset_types",
+        data_type="string",
+        description="Asset type code",
+    ),
+    "continent_code": ColumnMapping(
+        db_field="continent_code",
+        table_name="continents",
+        data_type="string",
+        description="Continent code",
+    ),
+    "custodian_code": ColumnMapping(
+        db_field="custodian_code",
+        table_name="custodians",
+        data_type="string",
+        description="Custodian code",
+    ),
+    "country_code": ColumnMapping(
+        db_field="country_code",
+        table_name="countries",
+        data_type="string",
+        description="Country code",
+    ),
+    "ccy": ColumnMapping(
+        db_field="ccy",
+        table_name="currencies",
+        data_type="string",
+        description="Currency code",
+    ),
+    "holding_date": ColumnMapping(
         db_field="holding_date",
         table_name="holdings",
         data_type="date",
         nullable=False,
-        description="Date of the holding",
+        description="Holding date",
     ),
-    "Holding.security_id": ColumnMapping(
-        csv_column="Security ID",
-        db_field="security_id",
+    "fund_code": ColumnMapping(
+        db_field="fund_code",
+        table_name="funds",
+        data_type="string",
+        description="Fund code",
+    ),
+    "market_category_code": ColumnMapping(
+        db_field="market_category_code",
+        table_name="market_categories",
+        data_type="string",
+        description="Market category code",
+    ),
+    "security_subtype_code": ColumnMapping(
+        db_field="security_subtype_code",
+        table_name="security_subtypes",
+        data_type="string",
+        description="Security subtype code",
+    ),
+    "account_number": ColumnMapping(
+        db_field="account_number",
+        table_name="custodians",
+        data_type="string",
+        description="Custodian account number",
+    ),
+    "cost_local": ColumnMapping(
+        db_field="cost_local",
         table_name="holdings",
-        data_type="foreign_key",
-        nullable=False,
-        description="Security identifier",
+        data_type="decimal",
+        description="Cost in local currency",
     ),
-    "Holding.fund_id": ColumnMapping(
-        csv_column="Fund ID",
-        db_field="fund_id",
+    "cost_base": ColumnMapping(
+        db_field="cost_base",
         table_name="holdings",
-        data_type="foreign_key",
-        nullable=False,
-        description="Fund identifier",
+        data_type="decimal",
+        description="Cost in base currency",
     ),
-    "Holding.custodian_id": ColumnMapping(
-        csv_column="Custodian ID",
-        db_field="custodian_id",
-        table_name="holdings",
-        data_type="foreign_key",
-        nullable=False,
-        description="Custodian identifier",
-    ),
-    "Holding.side": ColumnMapping(
-        csv_column="Side",
+    "side": ColumnMapping(
         db_field="side",
         table_name="holdings",
         data_type="string",
         nullable=False,
         description="Long or Short",
     ),
-    "Holding.quantity": ColumnMapping(
-        csv_column="Quantity",
-        db_field="quantity",
+    "quantity_start": ColumnMapping(
+        db_field="quantity_start",
         table_name="holdings",
         data_type="decimal",
-        description="Number of units held",
+        description="Starting quantity",
     ),
-    "Holding.cost": ColumnMapping(
-        csv_column="Cost",
-        db_field="cost",
+    "quantity_end": ColumnMapping(
+        db_field="quantity_end",
         table_name="holdings",
         data_type="decimal",
-        description="Total cost basis",
+        description="Ending quantity",
     ),
-    "Holding.price_local": ColumnMapping(
-        csv_column="Price Local",
+    "price_local": ColumnMapping(
         db_field="price_local",
         table_name="holdings",
         data_type="decimal",
         description="Price in local currency",
     ),
-    "Holding.price_base": ColumnMapping(
-        csv_column="Price Base",
+    "price_base": ColumnMapping(
         db_field="price_base",
         table_name="holdings",
         data_type="decimal",
         description="Price in base currency",
     ),
-    "Holding.outstanding_shares": ColumnMapping(
-        csv_column="Outstanding Shares",
+    "outstanding_shares": ColumnMapping(
         db_field="outstanding_shares",
         table_name="holdings",
         data_type="decimal",
         description="Total outstanding shares",
     ),
-    "Holding.market_cap": ColumnMapping(
-        csv_column="Market Cap",
+    "market_cap": ColumnMapping(
         db_field="market_cap",
         table_name="holdings",
         data_type="decimal",
         description="Market capitalisation",
     ),
-    # ── Positions ─────────────────────────────────────────────────────────
-    "Position.position_date": ColumnMapping(
-        csv_column="Position Date",
-        db_field="position_date",
-        table_name="positions",
-        data_type="date",
-        nullable=False,
-        description="Date of the position",
-    ),
-    "Position.security_id": ColumnMapping(
-        csv_column="Security ID",
-        db_field="security_id",
-        table_name="positions",
-        data_type="foreign_key",
-        nullable=False,
-        description="Security identifier",
-    ),
-    "Position.fund_id": ColumnMapping(
-        csv_column="Fund ID",
-        db_field="fund_id",
-        table_name="positions",
-        data_type="foreign_key",
-        nullable=False,
-        description="Fund identifier",
-    ),
-    "Position.side": ColumnMapping(
-        csv_column="Side",
-        db_field="side",
-        table_name="positions",
+    "security_type_code": ColumnMapping(
+        db_field="security_type_code",
+        table_name="security_types",
         data_type="string",
-        nullable=False,
-        description="Long or Short",
+        description="Security type code",
     ),
-    "Position.quantity": ColumnMapping(
-        csv_column="Quantity",
-        db_field="quantity",
-        table_name="positions",
-        data_type="decimal",
-        description="Number of units held",
-    ),
-    "Position.cost": ColumnMapping(
-        csv_column="Cost",
-        db_field="cost",
-        table_name="positions",
-        data_type="decimal",
-        description="Total cost basis",
-    ),
-    "Position.price_local": ColumnMapping(
-        csv_column="Price Local",
-        db_field="price_local",
-        table_name="positions",
-        data_type="decimal",
-        description="Price in local currency",
-    ),
-    "Position.price_base": ColumnMapping(
-        csv_column="Price Base",
-        db_field="price_base",
-        table_name="positions",
-        data_type="decimal",
-        description="Price in base currency",
-    ),
-    "Position.outstanding_shares": ColumnMapping(
-        csv_column="Outstanding Shares",
-        db_field="outstanding_shares",
-        table_name="positions",
-        data_type="decimal",
-        description="Total outstanding shares",
-    ),
-    "Position.market_cap": ColumnMapping(
-        csv_column="Market Cap",
-        db_field="market_cap",
-        table_name="positions",
-        data_type="decimal",
-        description="Market capitalisation",
-    ),
-    # ── FX Rates ──────────────────────────────────────────────────────────
-    "FxRate.rate_date": ColumnMapping(
-        csv_column="Rate Date",
-        db_field="rate_date",
-        table_name="fx_rates",
-        data_type="date",
-        nullable=False,
-        description="Date of the exchange rate",
-    ),
-    "FxRate.ref_currency_id": ColumnMapping(
-        csv_column="Reference Currency ID",
-        db_field="ref_currency_id",
-        table_name="fx_rates",
-        data_type="foreign_key",
-        nullable=False,
-        description="Reference currency identifier",
-    ),
-    "FxRate.currency_id": ColumnMapping(
-        csv_column="Currency ID",
-        db_field="currency_id",
-        table_name="fx_rates",
-        data_type="foreign_key",
-        nullable=False,
-        description="Target currency identifier",
-    ),
-    "FxRate.direct": ColumnMapping(
-        csv_column="Direct Rate",
-        db_field="direct",
-        table_name="fx_rates",
-        data_type="decimal",
-        nullable=False,
-        description="Direct exchange rate",
-    ),
-    "FxRate.indirect": ColumnMapping(
-        csv_column="Indirect Rate",
-        db_field="indirect",
-        table_name="fx_rates",
-        data_type="decimal",
-        nullable=False,
-        description="Indirect exchange rate",
-    ),
-    # ── Prices ────────────────────────────────────────────────────────────
-    "Price.price_date": ColumnMapping(
-        csv_column="Price Date",
-        db_field="price_date",
-        table_name="prices",
-        data_type="date",
-        nullable=False,
-        description="Date of the price",
-    ),
-    "Price.security_id": ColumnMapping(
-        csv_column="Security ID",
-        db_field="security_id",
-        table_name="prices",
-        data_type="foreign_key",
-        nullable=False,
-        description="Security identifier",
-    ),
-    "Price.currency_id": ColumnMapping(
-        csv_column="Currency ID",
-        db_field="currency_id",
-        table_name="prices",
-        data_type="foreign_key",
-        nullable=False,
-        description="Currency identifier",
-    ),
-    "Price.last": ColumnMapping(
-        csv_column="Last Price",
-        db_field="last",
-        table_name="prices",
-        data_type="decimal",
-        nullable=False,
-        description="Last traded price",
-    ),
-    "Price.next_day_open": ColumnMapping(
-        csv_column="Next Day Open",
-        db_field="next_day_open",
-        table_name="prices",
-        data_type="decimal",
-        description="Next day opening price",
-    ),
-}
-
-# ── Table display names (mapping key prefix → human label) ────────────────
-TABLE_DISPLAY_NAMES: dict[str, str] = {
-    "holdings": "Holding",
-    "positions": "Position",
-    "fx_rates": "FxRate",
-    "prices": "Price",
 }
 
 
@@ -318,22 +209,6 @@ class ColumnMappingService:
                     f"Column definition {i + 1}: Invalid mapping key '{mapping_key}'"
                 )
         return errors
-
-    def get_target_fields_for_file(
-        self, column_definitions: list[dict[str, Any]]
-    ) -> dict[str, dict[str, Any]]:
-        field_mapping: dict[str, dict[str, Any]] = {}
-        for col_def in column_definitions:
-            csv_column = col_def["column_name"]
-            mapping = self.get_mapping(col_def["mapping"])
-            if mapping:
-                field_mapping[csv_column] = {
-                    "db_field": mapping.db_field,
-                    "table_name": mapping.table_name,
-                    "data_type": mapping.data_type,
-                    "nullable": mapping.nullable,
-                }
-        return field_mapping
 
     def get_mappings_summary(self) -> dict[str, list[str]]:
         summary: dict[str, list[str]] = {}

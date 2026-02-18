@@ -15,7 +15,6 @@ import {
 } from "@/lib/api";
 import { FileIcon } from "@/components/icons/SidebarIcons";
 
-const FILE_NAMES = ["Pricing", "Holdings"];
 const FILE_TYPES = ["CSV", "PIPE"];
 
 function getFileTypeBadgeClass(type: string): string {
@@ -98,10 +97,12 @@ function PlusIcon({ size = 16 }: { size?: number }) {
 
 /* ─── Table display names ─── */
 const TABLE_DISPLAY_NAMES: Record<string, string> = {
-  holdings: "Holding",
-  positions: "Position",
-  fx_rates: "FxRate",
-  prices: "Price",
+  securities: "Security",
+  asset_types: "Asset Type",
+  continents: "Continent",
+  custodians: "Custodian",
+  countries: "Country",
+  currencies: "Currency",
 };
 
 function CloseIcon({ size = 16 }: { size?: number }) {
@@ -328,21 +329,16 @@ function CreateFileModal({
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label className="form-label">File Name</label>
-            <select
-              className="form-select"
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. SOD (Start of Day)"
               value={formData.name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               required
-            >
-              <option value="">Select file name</option>
-              {FILE_NAMES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="form-group">
             <label className="form-label">File Type</label>
@@ -442,21 +438,16 @@ function EditFileModal({
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label className="form-label">File Name</label>
-            <select
-              className="form-select"
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. SOD (Start of Day)"
               value={formData.name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               required
-            >
-              <option value="">Select file name</option>
-              {FILE_NAMES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="form-group">
             <label className="form-label">File Type</label>
