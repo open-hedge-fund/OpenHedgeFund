@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from src.column_mapper import COLUMN_MAPPINGS
 from src.database import get_session
+from src.jobs.helpers.column_definitions import fetch_column_definitions
 from src.jobs.helpers.file_loader import load_to_dataframe
 from src.jobs.helpers.status_writer import insert_status
 from src.jobs.inserters.holdings_inserter import insert_holdings
@@ -31,24 +32,6 @@ logger = logging.getLogger(__name__)
 MAX_SAMPLE_ERRORS = 25
 
 
-def _fetch_column_definitions(session: Session, file_id: int, tenant_id: str) -> list[ColumnDef]:
-    """Load column_definitions rows for a file and return them as ColumnDef objects."""
-    result = session.execute(
-        text("""
-            SELECT column_name, table_mapping, column_mapping
-            FROM column_definitions
-            WHERE file_id = :file_id AND tenant_id = :tenant_id
-        """),
-        {"file_id": file_id, "tenant_id": tenant_id},
-    )
-    return [
-        ColumnDef(
-            column_name=row.column_name,
-            table_mapping=row.table_mapping,
-            column_mapping=row.column_mapping,
-        )
-        for row in result
-    ]
 
 
 def _build_error_report(df: pd.DataFrame, result: ValidationResult) -> tuple[str | None, str | None]:
@@ -134,7 +117,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         logger.info("Loaded %d rows from file %s", len(df), record["file_name"])
 
         # ── 2. fetch column definitions ─────────────────────────────────
-        col_defs = _fetch_column_definitions(session, record["file_id"], record["tenant_id"])
+        col_defs = fetch_column_definitions(session, record["file_id"], record["tenant_id"])
         if not col_defs:
             raise ValueError("No column definitions found for this file")
 
