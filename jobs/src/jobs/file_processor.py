@@ -7,7 +7,6 @@ and reports errors back on the file_imports record.
 
 import json
 import logging
-import uuid
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -17,6 +16,7 @@ from sqlalchemy.orm import Session
 from src.column_mapper import COLUMN_MAPPINGS
 from src.database import get_session
 from src.jobs.helpers.file_loader import load_to_dataframe
+from src.jobs.helpers.status_writer import insert_status
 from src.jobs.inserters.holdings_inserter import insert_holdings
 from src.jobs.resolvers.fk_resolver import resolve_foreign_keys
 from src.jobs.validators import (
@@ -29,54 +29,6 @@ from src.jobs.validators import (
 logger = logging.getLogger(__name__)
 
 MAX_SAMPLE_ERRORS = 25
-
-
-# ── helpers ──────────────────────────────────────────────────────────────
-
-
-def _insert_status(session: Session, record: dict, status: str, **extra) -> str:
-    """Insert a new file_imports row for a status change. Returns the new row's ID."""
-    new_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc)
-
-    params = {
-        "id": new_id,
-        "file_id": record["file_id"],
-        "tenant_id": record["tenant_id"],
-        "file_name": record["file_name"],
-        "file_size": record["file_size"],
-        "imported_by_user_id": record["imported_by_user_id"],
-        "import_type": record["import_type"],
-        "status": status,
-        "created_at": now,
-        **extra,
-    }
-
-    session.execute(
-        text("""
-            INSERT INTO file_imports
-                (id, file_id, tenant_id, file_name, file_size, imported_by_user_id,
-                 import_type, status, created_at,
-                 started_at, completed_at, rows_processed, rows_failed,
-                 error_message, error_details)
-            VALUES
-                (:id, :file_id, :tenant_id, :file_name, :file_size, :imported_by_user_id,
-                 :import_type, :status, :created_at,
-                 :started_at, :completed_at, :rows_processed, :rows_failed,
-                 :error_message, CAST(:error_details AS jsonb))
-        """),
-        {
-            "started_at": None,
-            "completed_at": None,
-            "rows_processed": None,
-            "rows_failed": None,
-            "error_message": None,
-            "error_details": None,
-            **params,
-        },
-    )
-    session.commit()
-    return new_id
 
 
 def _fetch_column_definitions(session: Session, file_id: int, tenant_id: str) -> list[ColumnDef]:
@@ -145,8 +97,6 @@ def _safe_str(val) -> str | None:
 
 
 # ── main entry point ────────────────────────────────────────────────────
-
-
 def process_file_import(file_import_id: str, file_content: str, file_type: str) -> dict:
     """Process a file import end-to-end.
 
@@ -177,7 +127,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
 
         # ── mark PROCESSING ─────────────────────────────────────────────
         started_at = datetime.now(timezone.utc)
-        _insert_status(session, record, "PROCESSING", started_at=started_at)
+        insert_status(session, record, "PROCESSING", started_at=started_at)
 
         # ── 1. load DataFrame ───────────────────────────────────────────
         df = load_to_dataframe(file_content, file_type)
@@ -227,7 +177,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         completed_at = datetime.now(timezone.utc)
         final_status = "FAILED" if valid_rows == 0 else "PROCESSED"
 
-        _insert_status(
+        insert_status(
             session, record, final_status,
             started_at=started_at,
             completed_at=completed_at,
@@ -248,7 +198,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         logger.exception("File processing failed")
         session.rollback()
         try:
-            _insert_status(
+            insert_status(
                 session, record, "FAILED",
                 completed_at=datetime.now(timezone.utc),
                 error_message=str(e),
