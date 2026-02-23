@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from sqlalchemy import text
 
-from src.validators.base import BaseValidator, ValidationContext
+from src.jobs.validators.base import BaseValidator, ValidationContext
 
 logger = logging.getLogger(__name__)
 

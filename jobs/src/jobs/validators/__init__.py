@@ -5,17 +5,17 @@ from collections import Counter
 
 import pandas as pd
 
-from src.validators.base import (
+from src.jobs.validators.base import (
     BaseValidator,
     ColumnDef,
     ValidationContext,
     ValidationResult,
 )
-from src.validators.required_validator import RequiredValidator
-from src.validators.date_validator import DateValidator
-from src.validators.decimal_validator import DecimalValidator
-from src.validators.side_validator import SideValidator
-from src.validators.reference_validator import ReferenceValidator
+from src.jobs.validators.required_validator import RequiredValidator
+from src.jobs.validators.date_validator import DateValidator
+from src.jobs.validators.decimal_validator import DecimalValidator
+from src.jobs.validators.side_validator import SideValidator
+from src.jobs.validators.reference_validator import ReferenceValidator
 
 logger = logging.getLogger(__name__)
 

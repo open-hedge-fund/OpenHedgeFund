@@ -5,7 +5,7 @@ from sqlalchemy import text
 
 from src.celery_app import app
 from src.database import get_session
-from src.file_processor import process_file_import
+from src.jobs.file_processor import process_file_import
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def process_file(file_import_id: str, file_content: str, file_type: str):
 @app.task(name="src.tasks.fetch_fx_rates")
 def fetch_fx_rates():
     """Fetch daily USD exchange rates and upsert into fx_rates."""
-    from src.fx_rate_fetcher import fetch_and_upsert
+    from src.jobs.fx_rate_fetcher import fetch_and_upsert
 
     session = get_session()
     try:

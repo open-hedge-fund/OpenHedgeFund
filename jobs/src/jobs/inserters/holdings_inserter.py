@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.column_mapper import ColumnMapping
-from src.validators.base import ColumnDef
+from src.jobs.validators.base import ColumnDef
 
 logger = logging.getLogger(__name__)
 
