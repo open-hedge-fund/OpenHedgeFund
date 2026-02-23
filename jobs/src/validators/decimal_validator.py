@@ -1,0 +1,27 @@
+"""Validator: checks that decimal columns contain valid numbers."""
+
+import pandas as pd
+
+from src.validators.base import BaseValidator, ValidationContext
+
+
+class DecimalValidator(BaseValidator):
+
+    def validate(self, df: pd.DataFrame, ctx: ValidationContext) -> pd.DataFrame:
+        for col_def in ctx.column_defs:
+            mapping = ctx.column_mappings.get(col_def.column_mapping)
+            if mapping is None or mapping.data_type != "decimal":
+                continue
+
+            col = col_def.column_name
+            if col not in df.columns:
+                continue
+
+            non_null = df[col].notna() & (df[col].astype(str).str.strip() != "")
+            parsed = pd.to_numeric(df.loc[non_null, col], errors="coerce")
+            bad = non_null & parsed.isna().reindex(df.index, fill_value=False)
+
+            if bad.any():
+                self._append_error(df, bad, f"'{col}' contains an invalid number")
+
+        return df

@@ -20,9 +20,15 @@ app.conf.update(
     beat_schedule={
         "fetch-fx-rates-daily": {
             "task": "src.tasks.fetch_fx_rates",
-            "schedule": crontab(hour=6, minute=0),
+            "schedule": crontab(hour="*/4", minute=0),
         },
     },
 )
 
 app.autodiscover_tasks(["src"])
+
+
+@app.on_after_finalize.connect
+def run_missed_jobs(sender, **kwargs):
+    """Trigger jobs that may have been missed while the worker was down."""
+    sender.send_task("src.tasks.fetch_fx_rates")
