@@ -35,6 +35,8 @@ def fetch_and_upsert() -> dict:
     """
     data = _fetch_rates()
     rate_date = data["date"]
+
+    # pull out the nested "usd" dictionary for convenience.
     rates: dict[str, float] = data["usd"]
 
     session = get_session()
@@ -44,6 +46,14 @@ def fetch_and_upsert() -> dict:
         ccy_lookup: dict[str, int] = {row.ccy: row.id for row in rows}
 
         # Find USD currency id as ref_currency_id
+        # Note:  The API gives us rates relative to USD, but the database doesn't store "USD" as a string 
+        # — it needs USD's integer id from the currencies table. That's what usd_id is for: it gets written into every row as the ref_currency_id.
+        """
+             rate_date  | ref_currency_id | currency_id |      direct       |    indirect    |              tenant_id
+            ------------+-----------------+-------------+-------------------+----------------+--------------------------------------
+            2026-02-18 |             142 |           2 |    3.672500000000 | 0.272294077604 | 8dfdb30a-3001-43ed-b65c-03186d59fa10
+            2026-02-18 |             142 |           3 |   62.503054000000 | 0.015999218214 | 8dfdb30a-3001-43ed-b65c-03186d59fa10
+        """
         usd_id = ccy_lookup.get("usd")
         if not usd_id:
             raise RuntimeError("USD currency not found in currencies table")
