@@ -1,7 +1,7 @@
 """create column_definitions table
 
 Revision ID: a1b2c3d4e5f6
-Revises: 6cfe91d9058d
+Revises: 0c2375853a41
 Create Date: 2026-02-17 22:00:00.000000
 """
 from typing import Sequence, Union
