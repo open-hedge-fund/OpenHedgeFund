@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id']),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('name'),
+        sa.UniqueConstraint('name', 'tenant_id'),
     )
 
     # Add unique constraint on fx_rates to enable upsert
