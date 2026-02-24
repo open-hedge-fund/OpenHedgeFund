@@ -80,6 +80,139 @@ function DocumentIcon({ size = 20 }: { size?: number }) {
   );
 }
 
+interface ErrorDetails {
+  total_rows: number;
+  valid_rows: number;
+  failed_rows: number;
+  error_summary: Record<string, number>;
+  sample_errors: Array<{
+    row: number;
+    errors: string[];
+    data: Record<string, string | null>;
+  }>;
+}
+
+function ErrorDetailsModal({
+  imp,
+  onClose,
+}: {
+  imp: FileImportData;
+  onClose: () => void;
+}) {
+  const details = imp.error_details as ErrorDetails | null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-content error-details-modal">
+        <div className="error-details-header">
+          <div>
+            <h3>Import Errors</h3>
+            <p className="error-details-filename">{imp.file_name || "Unknown file"}</p>
+          </div>
+          <button className="error-details-close" onClick={onClose}>
+            &times;
+          </button>
+        </div>
+
+        {imp.error_message && (
+          <div className="error-details-message">{imp.error_message}</div>
+        )}
+
+        {details ? (
+          <>
+            <div className="error-details-summary">
+              <div className="error-details-stat">
+                <span className="error-details-stat-value">{details.total_rows}</span>
+                <span className="error-details-stat-label">Total Rows</span>
+              </div>
+              <div className="error-details-stat">
+                <span className="error-details-stat-value error-details-stat-success">
+                  {details.valid_rows}
+                </span>
+                <span className="error-details-stat-label">Valid</span>
+              </div>
+              <div className="error-details-stat">
+                <span className="error-details-stat-value error-details-stat-error">
+                  {details.failed_rows}
+                </span>
+                <span className="error-details-stat-label">Failed</span>
+              </div>
+            </div>
+
+            {Object.keys(details.error_summary).length > 0 && (
+              <div className="error-details-section">
+                <h4>Error Breakdown</h4>
+                <table className="files-table error-details-table">
+                  <thead>
+                    <tr>
+                      <th>Count</th>
+                      <th>Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(details.error_summary)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([msg, count]) => (
+                        <tr key={msg}>
+                          <td style={{ whiteSpace: "nowrap" }}>{count} rows</td>
+                          <td>{msg}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {details.sample_errors.length > 0 && (
+              <div className="error-details-section">
+                <h4>
+                  Sample Failed Rows
+                  {details.failed_rows > 10 && (
+                    <span className="error-details-sample-note">
+                      {" "}(showing 10 of {details.failed_rows})
+                    </span>
+                  )}
+                </h4>
+                <div className="error-details-samples">
+                  {details.sample_errors.slice(0, 10).map((sample) => (
+                    <div key={sample.row} className="error-details-sample-row">
+                      <div className="error-details-sample-header">
+                        <span className="error-details-row-label">Row {sample.row}</span>
+                        <span className="error-details-row-errors">
+                          {sample.errors.join("; ")}
+                        </span>
+                      </div>
+                      <div className="error-details-sample-data">
+                        {Object.entries(sample.data).map(([col, val]) => (
+                          <span key={col} className="error-details-data-chip">
+                            <span className="error-details-data-key">{col}:</span>{" "}
+                            {val ?? <em>empty</em>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p style={{ color: "var(--color-text-secondary)", fontSize: "var(--font-size-sm)" }}>
+            No detailed error information available.
+          </p>
+        )}
+
+        <div className="modal-actions">
+          <button className="btn btn-primary" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ImportDataContent() {
   const [files, setFiles] = useState<FileData[]>([]);
   const [selectedFileId, setSelectedFileId] = useState<string>("");
@@ -93,6 +226,7 @@ function ImportDataContent() {
 
   const [imports, setImports] = useState<FileImportData[]>([]);
   const [importsLoading, setImportsLoading] = useState(false);
+  const [errorModalImport, setErrorModalImport] = useState<FileImportData | null>(null);
 
   useEffect(() => {
     loadFiles();
@@ -421,11 +555,13 @@ function ImportDataContent() {
                       )}
                     </td>
                     <td>
-                      {imp.error_message ? (
-                        <div className="import-result-error" title={imp.error_message}>
-                          {imp.error_message.substring(0, 60)}
-                          {imp.error_message.length > 60 ? "..." : ""}
-                        </div>
+                      {imp.error_message || imp.error_details ? (
+                        <button
+                          className="btn-view-errors"
+                          onClick={() => setErrorModalImport(imp)}
+                        >
+                          View Errors
+                        </button>
                       ) : (
                         <span style={{ color: "var(--color-text-light)" }}>—</span>
                       )}
@@ -437,6 +573,13 @@ function ImportDataContent() {
           </div>
         )}
       </div>
+
+      {errorModalImport && (
+        <ErrorDetailsModal
+          imp={errorModalImport}
+          onClose={() => setErrorModalImport(null)}
+        />
+      )}
     </div>
   );
 }
