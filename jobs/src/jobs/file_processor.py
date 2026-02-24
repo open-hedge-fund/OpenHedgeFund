@@ -18,6 +18,7 @@ from src.database import get_session
 from src.jobs.helpers.column_definitions import fetch_column_definitions
 from src.jobs.helpers.file_loader import load_to_dataframe
 from src.jobs.helpers.status_writer import insert_status
+from src.jobs.builders.position_builder import build_and_insert_positions
 from src.jobs.inserters.holdings_inserter import insert_holdings
 from src.jobs.resolvers.fk_resolver import resolve_foreign_keys
 from src.jobs.transformers import normalize_numeric_columns
@@ -33,9 +34,9 @@ logger = logging.getLogger(__name__)
 MAX_SAMPLE_ERRORS = 25
 
 
-
-
-def _build_error_report(df: pd.DataFrame, result: ValidationResult) -> tuple[str | None, str | None]:
+def _build_error_report(
+    df: pd.DataFrame, result: ValidationResult
+) -> tuple[str | None, str | None]:
     """Build a human-readable error message and a JSONB-ready detail string.
 
     Returns (error_message, error_details_json) — both ``None`` when there
@@ -52,11 +53,13 @@ def _build_error_report(df: pd.DataFrame, result: ValidationResult) -> tuple[str
     internal_cols = {c for c in df.columns if c.startswith("_")}
     for idx, row in failed_df.iterrows():
         data = {col: _safe_str(row[col]) for col in df.columns if col not in internal_cols}
-        sample_errors.append({
-            "row": int(idx) + 2,  # +2 = 1-based + header row
-            "errors": list(row["_errors"]),
-            "data": data,
-        })
+        sample_errors.append(
+            {
+                "row": int(idx) + 2,  # +2 = 1-based + header row
+                "errors": list(row["_errors"]),
+                "data": data,
+            }
+        )
 
     details = {
         "total_rows": result.total_rows,
@@ -66,9 +69,7 @@ def _build_error_report(df: pd.DataFrame, result: ValidationResult) -> tuple[str
         "sample_errors": sample_errors,
     }
 
-    error_message = (
-        f"{result.failed_rows} of {result.total_rows} rows failed validation"
-    )
+    error_message = f"{result.failed_rows} of {result.total_rows} rows failed validation"
 
     return error_message, json.dumps(details)
 
@@ -78,6 +79,49 @@ def _safe_str(val) -> str | None:
     if val is None or (isinstance(val, float) and pd.isna(val)):
         return None
     return str(val)
+
+
+def _extract_holding_dates(
+    df: pd.DataFrame,
+    col_defs: list[ColumnDef],
+) -> list:
+    """Extract distinct holding_date values from valid rows in the DataFrame."""
+    has_errors = df["_errors"].apply(len) > 0
+    valid_df = df[~has_errors]
+
+    csv_col = None
+    for cd in col_defs:
+        if cd.column_mapping == "holding_date":
+            csv_col = cd.column_name
+            break
+
+    if csv_col is None or csv_col not in valid_df.columns:
+        return []
+
+    parsed = pd.to_datetime(valid_df[csv_col], errors="coerce").dt.date
+    return [d for d in parsed.dropna().unique()]
+
+
+def _rebuild_positions(
+    session: Session,
+    tenant_id: str,
+    holding_dates: list,
+) -> int:
+    """Rebuild positions for the given date(s) and tenant."""
+    total = 0
+    for holding_date in holding_dates:
+        count = build_and_insert_positions(session, holding_date, tenant_id)
+        total += count
+
+    if total:
+        session.commit()
+        logger.info(
+            "Positions pipeline: created %d positions across %d date(s)",
+            total,
+            len(holding_dates),
+        )
+
+    return total
 
 
 # ── main entry point ────────────────────────────────────────────────────
@@ -136,11 +180,15 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         val_result = run_validation_pipeline(df, ctx)
         logger.info(
             "Validation: %d valid, %d failed out of %d",
-            val_result.valid_rows, val_result.failed_rows, val_result.total_rows,
+            val_result.valid_rows,
+            val_result.failed_rows,
+            val_result.total_rows,
         )
 
         # ── 4. resolve foreign keys ────────────────────────────────────
-        df, auto_created = resolve_foreign_keys(df, col_defs, COLUMN_MAPPINGS, session, str(record["tenant_id"]))
+        df, auto_created = resolve_foreign_keys(
+            df, col_defs, COLUMN_MAPPINGS, session, str(record["tenant_id"])
+        )
         if auto_created:
             logger.info("Auto-created %d new securities", auto_created)
 
@@ -154,10 +202,21 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
 
         # ── 6. insert valid rows ────────────────────────────────────────
         inserted = 0
+        positions_created = 0
         if valid_rows > 0:
-            inserted = insert_holdings(df, col_defs, COLUMN_MAPPINGS, session, str(record["tenant_id"]))
+            inserted = insert_holdings(
+                df, col_defs, COLUMN_MAPPINGS, session, str(record["tenant_id"])
+            )
             session.commit()
             logger.info("Inserted %d holdings rows", inserted)
+
+            # ── 6b. build positions from ALL holdings for each date ──────
+            holding_dates = _extract_holding_dates(df, col_defs)
+            positions_created = _rebuild_positions(
+                session,
+                str(record["tenant_id"]),
+                holding_dates,
+            )
 
         # ── 7. build error report ───────────────────────────────────────
         error_message, error_details = _build_error_report(df, val_result)
@@ -167,7 +226,9 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         final_status = "FAILED" if valid_rows == 0 else "PROCESSED"
 
         insert_status(
-            session, record, final_status,
+            session,
+            record,
+            final_status,
             started_at=started_at,
             completed_at=completed_at,
             rows_processed=valid_rows,
@@ -181,6 +242,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
             "rows_processed": valid_rows,
             "rows_failed": failed_rows,
             "inserted": inserted,
+            "positions_created": positions_created,
             "securities_auto_created": auto_created,
         }
 
@@ -189,7 +251,9 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         session.rollback()
         try:
             insert_status(
-                session, record, "FAILED",
+                session,
+                record,
+                "FAILED",
                 completed_at=datetime.now(timezone.utc),
                 error_message=str(e),
             )

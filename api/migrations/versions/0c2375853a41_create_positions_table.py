@@ -23,7 +23,7 @@ def upgrade() -> None:
     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('position_date', sa.Date(), nullable=False),
     sa.Column('security_id', sa.BigInteger(), nullable=False),
-    sa.Column('fund_id', sa.BigInteger(), nullable=False),
+    sa.Column('fund_id', sa.BigInteger(), nullable=True),
     sa.Column('side', sa.String(length=5), nullable=False),
     sa.Column('quantity', sa.Numeric(precision=18, scale=6), nullable=True),
     sa.Column('cost', sa.Numeric(precision=18, scale=2), nullable=True),

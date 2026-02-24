@@ -21,8 +21,8 @@ class Position(Base):
     security_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("securities.id"), nullable=False
     )
-    fund_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("funds.id"), nullable=False
+    fund_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("funds.id"), nullable=True
     )
     strategy_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("strategies.id"), nullable=True
