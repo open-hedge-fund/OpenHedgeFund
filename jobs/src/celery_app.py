@@ -18,6 +18,9 @@ app.conf.update(
     enable_utc=True,
     task_acks_late=True,
     task_reject_on_worker_lost=True,
+    broker_transport_options={
+        "visibility_timeout": 3600 * 4,  # 4 hours
+    },
     # This is a temporary cron job to make sure jobs work with celery.
     # Also the job calls an open source api.
     # TODO: update this job to use a commercial pricing source.
