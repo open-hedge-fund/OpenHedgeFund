@@ -168,6 +168,7 @@ function ImportDataContent() {
       const selectedConfig = files.find((f) => String(f.id) === selectedFileId);
       await fileImportApi.uploadFile(selectedFile, fileId, selectedConfig?.type);
       setUploadSuccess("File uploaded successfully.");
+      // Clear file input so re-uploading the same filename triggers onChange
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       await loadImports();
