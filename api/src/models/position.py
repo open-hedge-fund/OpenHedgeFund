@@ -24,6 +24,9 @@ class Position(Base):
     fund_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("funds.id"), nullable=False
     )
+    strategy_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("strategies.id"), nullable=True
+    )
     side: Mapped[str] = mapped_column(String(5), nullable=False)  # 'Long' or 'Short'
 
     # Numeric fields
@@ -48,4 +51,5 @@ class Position(Base):
     # Relationships
     security: Mapped["Security"] = relationship()  # noqa: F821
     fund: Mapped["Fund"] = relationship()  # noqa: F821
+    strategy: Mapped["Strategy"] = relationship()  # noqa: F821
     tenant: Mapped["Tenant"] = relationship()  # noqa: F821

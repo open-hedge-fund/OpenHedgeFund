@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '6cfe91d9058d'
-down_revision: Union[str, None] = '6b843a246174'
+down_revision: Union[str, None] = '95fcdb8dd287'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -34,12 +34,14 @@ def upgrade() -> None:
     sa.Column('price_base', sa.Numeric(precision=18, scale=6), nullable=True),
     sa.Column('outstanding_shares', sa.Numeric(precision=18, scale=0), nullable=True),
     sa.Column('market_cap', sa.Numeric(precision=18, scale=2), nullable=True),
+    sa.Column('strategy_id', sa.BigInteger(), nullable=True),
     sa.Column('tenant_id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.CheckConstraint("side IN ('Long', 'Short')", name='holding_side_check'),
     sa.ForeignKeyConstraint(['custodian_id'], ['custodians.id'], ),
     sa.ForeignKeyConstraint(['fund_id'], ['funds.id'], ),
+    sa.ForeignKeyConstraint(['strategy_id'], ['strategies.id'], ),
     sa.ForeignKeyConstraint(['security_id'], ['securities.id'], ),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
     sa.PrimaryKeyConstraint('id')

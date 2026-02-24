@@ -11,6 +11,7 @@ class HoldingBase(BaseModel):
     fund_id: int
     custodian_id: int
     broker_id: int | None = None
+    strategy_id: int | None = None
     side: str
     quantity_start: Decimal | None = None
     quantity_end: Decimal | None = None
@@ -32,6 +33,7 @@ class HoldingUpdate(BaseModel):
     fund_id: int | None = None
     custodian_id: int | None = None
     broker_id: int | None = None
+    strategy_id: int | None = None
     side: str | None = None
     quantity_start: Decimal | None = None
     quantity_end: Decimal | None = None
