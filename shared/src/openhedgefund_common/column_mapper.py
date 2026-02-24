@@ -48,6 +48,12 @@ COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
         data_type="string",
         description="Security ID 3 (e.g. SEDOL)",
     ),
+    "security_des": ColumnMapping(
+        db_field="security_des",
+        table_name="securities",
+        data_type="string",
+        description="Security description",
+    ),
     "asset_type_code": ColumnMapping(
         db_field="asset_type_code",
         table_name="asset_types",
