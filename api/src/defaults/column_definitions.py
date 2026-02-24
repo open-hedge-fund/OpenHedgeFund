@@ -16,6 +16,7 @@ DEFAULT_COLUMN_DEFINITIONS = [
     ("SOD (Start of Day)", "Cost (Local Ccy)", "holdings", "cost_local"),
     ("SOD (Start of Day)", "Cost", "holdings", "cost_base"),
     ("SOD (Start of Day)", "Outstanding Shares", "holdings", "outstanding_shares"),
+    ("SOD (Start of Day)", "Security Description", "securities", "security_des"),
     ("SOD (Start of Day)", "SEDOL", "securities", "id_1"),
     ("SOD (Start of Day)", "ISIN", "securities", "id_2"),
     ("SOD (Start of Day)", "CUSIP", "securities", "id_3"),

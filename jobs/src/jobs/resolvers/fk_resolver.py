@@ -188,7 +188,7 @@ def _collect_rows_for_auto_creation(
     Returns ``{row_index: {db_field: value, ...}}``.
     Rows where all identifier columns are null are skipped.
     """
-    allowed_fields = {"symbol", "id_1", "id_2", "id_3"}
+    allowed_fields = {"symbol", "id_1", "id_2", "id_3", "security_des"}
     rows: dict[int, dict[str, str]] = {}
 
     for idx in df.index[missing_fk]:
