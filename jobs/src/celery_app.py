@@ -13,6 +13,8 @@ app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
     # This is a temporary cron job to make sure jobs work with celery.
     # Also the job calls an open source api.
     # TODO: update this job to use a commercial pricing source.
