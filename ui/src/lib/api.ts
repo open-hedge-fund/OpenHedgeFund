@@ -112,6 +112,7 @@ export interface ColumnDefinitionData {
   column_name: string;
   table_mapping: string;
   column_mapping: string;
+  date_format: string | null;
   tenant_id: string;
   created_at: string;
   updated_at: string | null;
@@ -122,12 +123,14 @@ export interface ColumnDefinitionCreateData {
   column_name: string;
   table_mapping: string;
   column_mapping: string;
+  date_format?: string | null;
 }
 
 export interface ColumnDefinitionUpdateData {
   column_name?: string;
   table_mapping?: string;
   column_mapping?: string;
+  date_format?: string | null;
 }
 
 export const columnDefinitionApi = {
