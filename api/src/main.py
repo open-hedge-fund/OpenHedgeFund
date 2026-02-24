@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.asset_types import router as asset_types_router
+from src.api.brokers import router as brokers_router
 from src.api.column_definitions import router as column_definitions_router
 from src.api.column_mappings import router as column_mappings_router
 from src.api.continents import router as continents_router
@@ -60,6 +61,7 @@ app.include_router(users_router)
 app.include_router(files_router)
 app.include_router(file_imports_router)
 app.include_router(asset_types_router)
+app.include_router(brokers_router)
 app.include_router(column_definitions_router)
 app.include_router(column_mappings_router)
 app.include_router(continents_router)

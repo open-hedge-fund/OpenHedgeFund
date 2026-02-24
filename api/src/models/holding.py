@@ -27,6 +27,9 @@ class Holding(Base):
     custodian_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("custodians.id"), nullable=True
     )
+    broker_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("brokers.id"), nullable=True
+    )
     strategy_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("strategies.id"), nullable=True
     )
@@ -57,5 +60,6 @@ class Holding(Base):
     security: Mapped["Security"] = relationship()  # noqa: F821
     fund: Mapped["Fund"] = relationship()  # noqa: F821
     custodian: Mapped["Custodian"] = relationship()  # noqa: F821
+    broker: Mapped["Broker"] = relationship()  # noqa: F821
     strategy: Mapped["Strategy"] = relationship()  # noqa: F821
     tenant: Mapped["Tenant"] = relationship()  # noqa: F821

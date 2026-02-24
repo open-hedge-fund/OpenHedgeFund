@@ -19,6 +19,17 @@ interface SidebarProps {
 }
 
 /* Icons for settings items */
+function BrokerIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 7h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+      <path d="M14 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2" />
+      <path d="M7 8h3" />
+      <path d="M7 12h3" />
+    </svg>
+  );
+}
+
 function AssetTypeIcon({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -151,6 +162,7 @@ const reportItems: MenuItem[] = [
 const settingsItems: MenuItem[] = [
   { label: "Files", icon: FileIcon, href: "/settings/files" },
   { label: "Asset Types", icon: AssetTypeIcon, href: "/settings/asset-types" },
+  { label: "Brokers", icon: BrokerIcon, href: "/settings/brokers" },
   { label: "Security Types", icon: SecurityTypeIcon, href: "/settings/security-types" },
   { label: "Security SubTypes", icon: SecuritySubTypeIcon, href: "/settings/security-subtypes" },
   { label: "Continents", icon: ContinentIcon, href: "/settings/continents" },

@@ -1,4 +1,5 @@
 from src.models.asset_type import AssetType
+from src.models.broker import Broker
 from src.models.column_definition import ColumnDefinition
 from src.models.continent import Continent
 from src.models.country import Country
@@ -22,6 +23,7 @@ from src.models.user import User
 
 __all__ = [
     "AssetType",
+    "Broker",
     "ColumnDefinition",
     "Continent",
     "Country",

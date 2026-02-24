@@ -522,6 +522,28 @@ export const fxRateApi = {
   },
 };
 
+/* ─── Brokers ─── */
+export interface BrokerData {
+  id: number;
+  broker_code: string;
+  broker_description: string;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface BrokerCreateData {
+  broker_code: string;
+  broker_description: string;
+}
+
+export interface BrokerUpdateData {
+  broker_code?: string;
+  broker_description?: string;
+}
+
+export const brokerApi = createCrudApi<BrokerData, BrokerCreateData, BrokerUpdateData>("/brokers");
+
 /* ─── Positions ─── */
 export interface PositionData {
   id: number;
@@ -588,6 +610,7 @@ export interface HoldingData {
   security_id: number;
   fund_id: number;
   custodian_id: number;
+  broker_id: number | null;
   strategy_id: number | null;
   side: string;
   quantity: number | null;
@@ -606,6 +629,7 @@ export interface HoldingCreateData {
   security_id: number;
   fund_id: number;
   custodian_id: number;
+  broker_id?: number;
   strategy_id?: number;
   side: string;
   quantity?: number;
@@ -621,6 +645,7 @@ export interface HoldingUpdateData {
   security_id?: number;
   fund_id?: number;
   custodian_id?: number;
+  broker_id?: number;
   strategy_id?: number;
   side?: string;
   quantity?: number;
