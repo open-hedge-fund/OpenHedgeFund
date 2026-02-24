@@ -21,11 +21,11 @@ class Holding(Base):
     security_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("securities.id"), nullable=False
     )
-    fund_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("funds.id"), nullable=False
+    fund_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("funds.id"), nullable=True
     )
-    custodian_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("custodians.id"), nullable=False
+    custodian_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("custodians.id"), nullable=True
     )
     side: Mapped[str] = mapped_column(String(5), nullable=False)  # 'Long' or 'Short'
 

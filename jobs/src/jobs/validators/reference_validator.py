@@ -37,6 +37,9 @@ class ReferenceValidator(BaseValidator):
             # Skip columns that map directly to the holdings table.
             if mapping.table_name == "holdings":
                 continue
+            # Securities are auto-created during FK resolution; skip validation here.
+            if mapping.table_name == "securities":
+                continue
             if mapping.table_name not in ALLOWED_TABLES:
                 logger.warning("Skipping disallowed table: %s", mapping.table_name)
                 continue
