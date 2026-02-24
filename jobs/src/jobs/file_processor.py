@@ -20,6 +20,7 @@ from src.jobs.helpers.file_loader import load_to_dataframe
 from src.jobs.helpers.status_writer import insert_status
 from src.jobs.inserters.holdings_inserter import insert_holdings
 from src.jobs.resolvers.fk_resolver import resolve_foreign_keys
+from src.jobs.transformers import normalize_numeric_columns
 from src.jobs.validators import (
     ColumnDef,
     ValidationContext,
@@ -120,6 +121,9 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         col_defs = fetch_column_definitions(session, record["file_id"], record["tenant_id"])
         if not col_defs:
             raise ValueError("No column definitions found for this file")
+
+        # ── 2b. normalise numeric strings (strip commas, currency symbols)
+        df = normalize_numeric_columns(df, col_defs, COLUMN_MAPPINGS)
 
         # ── 3. run validation pipeline ──────────────────────────────────
         ctx = ValidationContext(
