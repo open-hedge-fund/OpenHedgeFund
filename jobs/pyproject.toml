@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.0",
     "pydantic-settings>=2.0",
     "httpx>=0.28",
+    "openhedgefund-common @ file:///../shared",
 ]
 
 [project.optional-dependencies]

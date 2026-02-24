@@ -6,7 +6,6 @@ from src.jobs.validators.base import BaseValidator, ValidationContext
 
 
 class DateValidator(BaseValidator):
-
     def validate(self, df: pd.DataFrame, ctx: ValidationContext) -> pd.DataFrame:
         for col_def in ctx.column_defs:
             mapping = ctx.column_mappings.get(col_def.column_mapping)
@@ -18,7 +17,8 @@ class DateValidator(BaseValidator):
                 continue
 
             non_null = df[col].notna() & (df[col].astype(str).str.strip() != "")
-            parsed = pd.to_datetime(df.loc[non_null, col], errors="coerce")
+            fmt = col_def.date_format
+            parsed = pd.to_datetime(df.loc[non_null, col], format=fmt, errors="coerce")
             bad = non_null & parsed.isna().reindex(df.index, fill_value=False)
 
             if bad.any():

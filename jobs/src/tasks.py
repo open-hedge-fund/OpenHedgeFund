@@ -16,8 +16,15 @@ def process_file(file_import_id: str, file_content: str, file_type: str):
     return process_file_import(file_import_id, file_content, file_type)
 
 
-@app.task(name="src.tasks.fetch_fx_rates")
-def fetch_fx_rates():
+@app.task(
+    name="src.tasks.fetch_fx_rates",
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=60,
+    retry_backoff_max=3600,
+    max_retries=5,
+)
+def fetch_fx_rates(self):
     """Fetch daily USD exchange rates and upsert into fx_rates."""
     from src.jobs.fx_rate_fetcher import fetch_and_upsert
 
@@ -38,19 +45,25 @@ def fetch_fx_rates():
         return result
 
     except Exception as e:
-        logger.exception("FX rate fetch failed")
-        try:
-            session.execute(
-                text("""
-                    UPDATE jobs
-                    SET last_run_at = :now, last_status = 'FAILED', last_error = :error
-                    WHERE task_name = 'src.tasks.fetch_fx_rates'
-                """),
-                {"now": datetime.now(timezone.utc), "error": str(e)},
-            )
-            session.commit()
-        except Exception:
-            session.rollback()
+        logger.exception(
+            "FX rate fetch failed (attempt %d/%d)",
+            self.request.retries + 1,
+            self.max_retries + 1,
+        )
+        is_final_attempt = self.request.retries >= self.max_retries
+        if is_final_attempt:
+            try:
+                session.execute(
+                    text("""
+                        UPDATE jobs
+                        SET last_run_at = :now, last_status = 'FAILED', last_error = :error
+                        WHERE task_name = 'src.tasks.fetch_fx_rates'
+                    """),
+                    {"now": datetime.now(timezone.utc), "error": str(e)},
+                )
+                session.commit()
+            except Exception:
+                session.rollback()
         raise
     finally:
         session.close()

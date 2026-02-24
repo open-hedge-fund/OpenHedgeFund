@@ -89,11 +89,16 @@ Every resource is scoped to a **tenant**. On user registration, a Tenant is auto
 - Sidebar menu items configured as arrays in `ui/src/components/Sidebar.tsx`
 - Constrained values (like file names/types) are defined as const arrays in the page component
 
+### Shared Package
+- **`shared/src/openhedgefund_common/`** — shared Python package installed by both `api` and `jobs`
+- `column_mapper.py` lives here as the single source of truth
+- Both services declare `openhedgefund-common @ file:///../shared` in their `pyproject.toml`
+- Dockerfiles COPY `shared/` into the image and install it before the service package
+
 ### Jobs Service
 - **Celery** workers (synchronous Python) — separate from FastAPI (async Python)
 - **Sync SQLAlchemy** (`create_engine` + `sessionmaker`) in `jobs/src/database.py` — NOT async
 - Jobs do NOT go through the API — they connect directly to the database
-- `column_mapper.py` is duplicated between `api/` and `jobs/` (separate containers can't share imports)
 
 ### Jobs Service Structure
 ```
@@ -101,7 +106,7 @@ jobs/src/
 ├── celery_app.py          # Celery config + beat schedule
 ├── database.py            # Sync SQLAlchemy engine + get_session()
 ├── tasks.py               # Celery task registry (entry points)
-├── column_mapper.py       # Column mapping config (duplicated from api/)
+├── column_mapper.py       # Re-exports from openhedgefund_common
 ├── jobs/
 │   ├── file_processor.py  # File import ETL orchestrator
 │   ├── fx_rate_fetcher.py # FX rate fetcher (multi-tenant, free API)

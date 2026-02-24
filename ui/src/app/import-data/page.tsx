@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/DashboardLayout";
 import { fileApi, fileImportApi, FileData, FileImportData } from "@/lib/api";
@@ -115,7 +115,7 @@ function ImportDataContent() {
     }
   };
 
-  const loadImports = async () => {
+  const loadImports = useCallback(async () => {
     try {
       setImportsLoading(true);
       const data = await fileImportApi.getImports(20);
@@ -125,7 +125,17 @@ function ImportDataContent() {
     } finally {
       setImportsLoading(false);
     }
-  };
+  }, []);
+
+  // Poll for status updates when imports are in non-terminal states
+  useEffect(() => {
+    const hasActiveImports = imports.some((i) =>
+      ["RECEIVED", "PROCESSING"].includes(i.status),
+    );
+    if (!hasActiveImports) return;
+    const interval = setInterval(() => loadImports(), 3000);
+    return () => clearInterval(interval);
+  }, [imports, loadImports]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -168,6 +178,9 @@ function ImportDataContent() {
       const selectedConfig = files.find((f) => String(f.id) === selectedFileId);
       await fileImportApi.uploadFile(selectedFile, fileId, selectedConfig?.type);
       setUploadSuccess("File uploaded successfully.");
+      // Clear file input so re-uploading the same filename triggers onChange
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       await loadImports();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { detail?: string } } };

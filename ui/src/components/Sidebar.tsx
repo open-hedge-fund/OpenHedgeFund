@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { LogoIcon } from "@/components/Brand";
 import {
   DashboardIcon,
@@ -168,10 +169,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       />
       <aside className={`sidebar${open ? " open" : ""}`}>
         <div className="sidebar-header">
-          <a href="/" className="sidebar-logo">
+          <Link href="/" className="sidebar-logo">
             <LogoIcon size={32} />
             <span className="sidebar-logo-text">OpenHedgeFund</span>
-          </a>
+          </Link>
           <button
             className="sidebar-close"
             onClick={onClose}
@@ -186,7 +187,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <ul className="sidebar-menu">
             {menuItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
-                <a
+                <Link
                   href={item.href}
                   className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}
                 >
@@ -197,7 +198,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   {item.badge && (
                     <span className="sidebar-badge">{item.badge}</span>
                   )}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -206,7 +207,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <ul className="sidebar-menu">
             {reportItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
-                <a
+                <Link
                   href={item.href}
                   className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}
                 >
@@ -217,7 +218,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   {item.badge && (
                     <span className="sidebar-badge">{item.badge}</span>
                   )}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -226,7 +227,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <ul className="sidebar-menu">
             {visibleSettingsItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
-                <a href={item.href} className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}>
+                <Link href={item.href} className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}>
                   <span className="sidebar-menu-link-icon">
                     <item.icon size={22} />
                   </span>
@@ -234,7 +235,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   {item.badge && (
                     <span className="sidebar-badge">{item.badge}</span>
                   )}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

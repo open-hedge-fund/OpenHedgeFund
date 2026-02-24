@@ -134,8 +134,10 @@ function ColumnMappingsPanel({
   const [mappings, setMappings] = useState<ColumnDefinitionData[]>([]);
   const [availableMappings, setAvailableMappings] = useState<AvailableMappingsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newColumnName, setNewColumnName] = useState("");
   const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
+  const [newDateFormat, setNewDateFormat] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
@@ -145,6 +147,7 @@ function ColumnMappingsPanel({
   const loadData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const [defs, avail] = await Promise.all([
         columnDefinitionApi.getByFile(file.id),
         columnMappingApi.getAvailableMappings(),
@@ -152,11 +155,18 @@ function ColumnMappingsPanel({
       setMappings(defs);
       setAvailableMappings(avail);
     } catch {
-      // silently handle
+      setError("Failed to load column mappings. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Check if the currently selected mapping is a date type
+  const selectedMappingKey = newMapping ? newMapping.split("|")[1] : "";
+  const selectedMappingOption = availableMappings?.mappings.find(
+    (m) => m.key === selectedMappingKey,
+  );
+  const isDateMapping = selectedMappingOption?.data_type === "date";
 
   const handleAdd = async () => {
     if (!newColumnName.trim() || !newMapping) return;
@@ -168,10 +178,12 @@ function ColumnMappingsPanel({
         column_name: newColumnName.trim(),
         table_mapping: tableMapping,
         column_mapping: columnMapping,
+        date_format: newDateFormat.trim() || null,
       });
       setMappings((prev) => [...prev, created]);
       setNewColumnName("");
       setNewMapping("");
+      setNewDateFormat("");
     } catch {
       alert("Failed to add column mapping");
     } finally {
@@ -203,6 +215,24 @@ function ColumnMappingsPanel({
 
       {isLoading ? (
         <div className="column-mappings-loading">Loading mappings...</div>
+      ) : error ? (
+        <div className="alert-error" style={{ margin: "var(--spacing-md)" }}>
+          <span>{error}</span>
+          <button
+            onClick={loadData}
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              color: "var(--color-error)",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "var(--font-size-sm)",
+            }}
+          >
+            Try again
+          </button>
+        </div>
       ) : (
         <>
           <table className="column-mappings-table">
@@ -211,6 +241,7 @@ function ColumnMappingsPanel({
                 <th>Column Name</th>
                 <th>Table</th>
                 <th>Mapping</th>
+                <th>Date Format</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -225,6 +256,7 @@ function ColumnMappingsPanel({
                   <td>
                     <span className="mapping-badge">{m.column_mapping}</span>
                   </td>
+                  <td>{m.date_format || ""}</td>
                   <td>{formatDate(m.created_at)}</td>
                   <td>
                     <button
@@ -239,7 +271,7 @@ function ColumnMappingsPanel({
               ))}
               {mappings.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="column-mappings-empty">
+                  <td colSpan={6} className="column-mappings-empty">
                     No column mappings defined yet.
                   </td>
                 </tr>
@@ -258,7 +290,10 @@ function ColumnMappingsPanel({
             <select
               className="form-select"
               value={newMapping}
-              onChange={(e) => setNewMapping(e.target.value)}
+              onChange={(e) => {
+                setNewMapping(e.target.value);
+                setNewDateFormat("");
+              }}
             >
               <option value="">Select mapping...</option>
               {availableMappings &&
@@ -277,6 +312,16 @@ function ColumnMappingsPanel({
                   ),
                 )}
             </select>
+            {isDateMapping && (
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Date format (e.g. %m/%d/%Y)"
+                value={newDateFormat}
+                onChange={(e) => setNewDateFormat(e.target.value)}
+                style={{ maxWidth: "200px" }}
+              />
+            )}
             <button
               className="btn btn-primary btn-add-mapping"
               onClick={handleAdd}
