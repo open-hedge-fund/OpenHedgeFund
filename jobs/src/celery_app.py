@@ -13,6 +13,9 @@ app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    broker_transport_options={
+        "visibility_timeout": 3600 * 4,  # 4 hours
+    },
     # This is a temporary cron job to make sure jobs work with celery.
     # Also the job calls an open source api.
     # TODO: update this job to use a commercial pricing source.
