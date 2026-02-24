@@ -27,8 +27,8 @@ services:
 
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -43,8 +43,8 @@ services:
 
   jobs-worker:
     build:
-      context: ./jobs
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: jobs/Dockerfile
     command: celery -A src.celery_app worker --loglevel=info
     environment:
       DATABASE_URL: postgresql://openhedgefund:localdev@db:5432/openhedgefund
@@ -59,8 +59,8 @@ services:
 
   jobs-beat:
     build:
-      context: ./jobs
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: jobs/Dockerfile
     command: celery -A src.celery_app beat --loglevel=info
     environment:
       DATABASE_URL: postgresql://openhedgefund:localdev@db:5432/openhedgefund
