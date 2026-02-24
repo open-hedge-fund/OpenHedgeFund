@@ -168,14 +168,14 @@ function ErrorDetailsModal({
               <div className="error-details-section">
                 <h4>
                   Sample Failed Rows
-                  {details.failed_rows > details.sample_errors.length && (
+                  {details.failed_rows > 10 && (
                     <span className="error-details-sample-note">
-                      {" "}(showing {details.sample_errors.length} of {details.failed_rows})
+                      {" "}(showing 10 of {details.failed_rows})
                     </span>
                   )}
                 </h4>
                 <div className="error-details-samples">
-                  {details.sample_errors.map((sample) => (
+                  {details.sample_errors.slice(0, 10).map((sample) => (
                     <div key={sample.row} className="error-details-sample-row">
                       <div className="error-details-sample-header">
                         <span className="error-details-row-label">Row {sample.row}</span>
