@@ -617,8 +617,10 @@ export interface HoldingData {
   strategy_id: number | null;
   ccy_id: number | null;
   side: string;
-  quantity: number | null;
-  cost: number | null;
+  quantity_start: number | null;
+  quantity_end: number | null;
+  cost_local: number | null;
+  cost_base: number | null;
   price_local: number | null;
   price_base: number | null;
   outstanding_shares: number | null;
@@ -637,8 +639,10 @@ export interface HoldingCreateData {
   strategy_id?: number;
   ccy_id?: number;
   side: string;
-  quantity?: number;
-  cost?: number;
+  quantity_start?: number;
+  quantity_end?: number;
+  cost_local?: number;
+  cost_base?: number;
   price_local?: number;
   price_base?: number;
   outstanding_shares?: number;
@@ -654,8 +658,10 @@ export interface HoldingUpdateData {
   strategy_id?: number;
   ccy_id?: number;
   side?: string;
-  quantity?: number;
-  cost?: number;
+  quantity_start?: number;
+  quantity_end?: number;
+  cost_local?: number;
+  cost_base?: number;
   price_local?: number;
   price_base?: number;
   outstanding_shares?: number;
