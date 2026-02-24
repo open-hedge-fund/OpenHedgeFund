@@ -22,12 +22,24 @@ HOLDINGS_FK_MAP: dict[tuple[str, str], str] = {
     ("funds", "fund_code"): "fund_id",
 }
 
+# When multiple identifiers resolve to the same FK (e.g. security_id),
+# prefer more precise/unique identifiers over less unique ones.
+# Lower number = higher priority.  ISIN > SEDOL > CUSIP > Symbol.
+FK_IDENTIFIER_PRIORITY: dict[tuple[str, str], int] = {
+    ("securities", "id_2"): 0,  # ISIN  — globally unique
+    ("securities", "id_3"): 1,  # SEDOL — unique per exchange
+    ("securities", "id_1"): 2,  # CUSIP — North America unique
+    ("securities", "symbol"): 3,  # Symbol — not unique across exchanges
+}
+
 # Whitelist for table names used in queries.
-ALLOWED_TABLES = frozenset({
-    "securities",
-    "custodians",
-    "funds",
-})
+ALLOWED_TABLES = frozenset(
+    {
+        "securities",
+        "custodians",
+        "funds",
+    }
+)
 
 
 def resolve_foreign_keys(
@@ -43,7 +55,22 @@ def resolve_foreign_keys(
     """
     resolved_cols: set[str] = set()
 
-    for col_def in col_defs:
+    # Sort col_defs so higher-priority identifiers are resolved first.
+    # For entries not in the priority map, use a high default so they
+    # sort after all prioritised identifiers.
+    _DEFAULT_PRIORITY = 999
+    sorted_col_defs = sorted(
+        col_defs,
+        key=lambda cd: FK_IDENTIFIER_PRIORITY.get(
+            (
+                mappings.get(cd.column_mapping, ColumnMapping("", "", "")).table_name,
+                mappings.get(cd.column_mapping, ColumnMapping("", "", "")).db_field,
+            ),
+            _DEFAULT_PRIORITY,
+        ),
+    )
+
+    for col_def in sorted_col_defs:
         mapping = mappings.get(col_def.column_mapping)
         if mapping is None:
             continue
@@ -67,13 +94,7 @@ def resolve_foreign_keys(
             continue
 
         id_map = _build_id_map(session, mapping.table_name, mapping.db_field, tenant_id)
-        df[resolved_name] = (
-            df[col]
-            .astype(str)
-            .str.strip()
-            .str.upper()
-            .map(id_map)
-        )
+        df[resolved_name] = df[col].astype(str).str.strip().str.upper().map(id_map)
         resolved_cols.add(resolved_name)
         logger.info("Resolved %s → %s (%d unique values)", col, resolved_name, len(id_map))
 
@@ -86,7 +107,9 @@ def resolve_foreign_keys(
         missing_fk = valid_mask & df[resolved_name].isna()
         if missing_fk.any():
             for idx in df.index[missing_fk]:
-                df.at[idx, "_errors"].append(f"Could not resolve '{fk}' — value not found in reference table")
+                df.at[idx, "_errors"].append(
+                    f"Could not resolve '{fk}' — value not found in reference table"
+                )
 
     return df
 
