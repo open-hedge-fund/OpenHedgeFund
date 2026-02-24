@@ -288,6 +288,19 @@ export interface CustodianData {
 
 export const custodianApi = createCrudApi<CustodianData>("/custodians");
 
+/* ─── Strategies ─── */
+export interface StrategyData {
+  id: number;
+  strategy_code: string;
+  strategy_description: string;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const strategyApi = createCrudApi<StrategyData>("/strategies");
+
 /* ─── Funds ─── */
 export interface FundData {
   id: number;
@@ -530,19 +543,6 @@ export interface BrokerUpdateData {
 }
 
 export const brokerApi = createCrudApi<BrokerData, BrokerCreateData, BrokerUpdateData>("/brokers");
-
-/* ─── Strategies ─── */
-export interface StrategyData {
-  id: number;
-  strategy_code: string;
-  strategy_description: string;
-  is_active: boolean;
-  tenant_id: string;
-  created_at: string;
-  updated_at: string | null;
-}
-
-export const strategyApi = createCrudApi<StrategyData>("/strategies");
 
 /* ─── Positions ─── */
 export interface PositionData {
