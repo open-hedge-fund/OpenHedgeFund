@@ -551,6 +551,7 @@ export interface PositionData {
   security_id: number;
   fund_id: number;
   strategy_id: number | null;
+  ccy_id: number | null;
   side: string;
   quantity: number | null;
   cost: number | null;
@@ -568,6 +569,7 @@ export interface PositionCreateData {
   security_id: number;
   fund_id: number;
   strategy_id?: number;
+  ccy_id?: number;
   side: string;
   quantity?: number;
   cost?: number;
@@ -582,6 +584,7 @@ export interface PositionUpdateData {
   security_id?: number;
   fund_id?: number;
   strategy_id?: number;
+  ccy_id?: number;
   side?: string;
   quantity?: number;
   cost?: number;
@@ -612,6 +615,7 @@ export interface HoldingData {
   custodian_id: number;
   broker_id: number | null;
   strategy_id: number | null;
+  ccy_id: number | null;
   side: string;
   quantity: number | null;
   cost: number | null;
@@ -631,6 +635,7 @@ export interface HoldingCreateData {
   custodian_id: number;
   broker_id?: number;
   strategy_id?: number;
+  ccy_id?: number;
   side: string;
   quantity?: number;
   cost?: number;
@@ -647,6 +652,7 @@ export interface HoldingUpdateData {
   custodian_id?: number;
   broker_id?: number;
   strategy_id?: number;
+  ccy_id?: number;
   side?: string;
   quantity?: number;
   cost?: number;
