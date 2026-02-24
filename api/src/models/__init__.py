@@ -16,8 +16,8 @@ from src.models.position import Position
 from src.models.price import Price
 from src.models.security import Security
 from src.models.security_subtype import SecuritySubType
-from src.models.strategy import Strategy
 from src.models.security_type import SecurityType
+from src.models.strategy import Strategy
 from src.models.tenant import Tenant
 from src.models.user import User
 

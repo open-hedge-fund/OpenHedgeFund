@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '95fcdb8dd287'
-down_revision: Union[str, None] = '6b843a246174'
+down_revision: Union[str, None] = 'c3d4e5f6a7b8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -31,6 +31,19 @@ def upgrade() -> None:
     sa.UniqueConstraint('tenant_id', 'strategy_code', name='uq_strategies_tenant_code')
     )
 
+    # Add strategy_id to holdings and positions
+    op.add_column('holdings', sa.Column('strategy_id', sa.BigInteger(), nullable=True))
+    op.create_foreign_key('fk_holdings_strategy_id', 'holdings', 'strategies', ['strategy_id'], ['id'])
+
+    op.add_column('positions', sa.Column('strategy_id', sa.BigInteger(), nullable=True))
+    op.create_foreign_key('fk_positions_strategy_id', 'positions', 'strategies', ['strategy_id'], ['id'])
+
 
 def downgrade() -> None:
+    op.drop_constraint('fk_positions_strategy_id', 'positions', type_='foreignkey')
+    op.drop_column('positions', 'strategy_id')
+
+    op.drop_constraint('fk_holdings_strategy_id', 'holdings', type_='foreignkey')
+    op.drop_column('holdings', 'strategy_id')
+
     op.drop_table('strategies')

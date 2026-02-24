@@ -20,8 +20,8 @@ from src.api.positions import router as positions_router
 from src.api.prices import router as prices_router
 from src.api.securities import router as securities_router
 from src.api.security_subtypes import router as security_subtypes_router
-from src.api.strategies import router as strategies_router
 from src.api.security_types import router as security_types_router
+from src.api.strategies import router as strategies_router
 from src.api.tenants import router as tenants_router
 from src.api.users import router as users_router
 from src.config import settings
