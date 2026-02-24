@@ -134,6 +134,7 @@ function ColumnMappingsPanel({
   const [mappings, setMappings] = useState<ColumnDefinitionData[]>([]);
   const [availableMappings, setAvailableMappings] = useState<AvailableMappingsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [newColumnName, setNewColumnName] = useState("");
   const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
   const [isAdding, setIsAdding] = useState(false);
@@ -145,6 +146,7 @@ function ColumnMappingsPanel({
   const loadData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const [defs, avail] = await Promise.all([
         columnDefinitionApi.getByFile(file.id),
         columnMappingApi.getAvailableMappings(),
@@ -152,7 +154,7 @@ function ColumnMappingsPanel({
       setMappings(defs);
       setAvailableMappings(avail);
     } catch {
-      // silently handle
+      setError("Failed to load column mappings. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -203,6 +205,24 @@ function ColumnMappingsPanel({
 
       {isLoading ? (
         <div className="column-mappings-loading">Loading mappings...</div>
+      ) : error ? (
+        <div className="alert-error" style={{ margin: "var(--spacing-md)" }}>
+          <span>{error}</span>
+          <button
+            onClick={loadData}
+            style={{
+              marginLeft: "auto",
+              background: "none",
+              border: "none",
+              color: "var(--color-error)",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "var(--font-size-sm)",
+            }}
+          >
+            Try again
+          </button>
+        </div>
       ) : (
         <>
           <table className="column-mappings-table">
