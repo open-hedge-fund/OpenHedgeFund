@@ -168,6 +168,8 @@ function ImportDataContent() {
       const selectedConfig = files.find((f) => String(f.id) === selectedFileId);
       await fileImportApi.uploadFile(selectedFile, fileId, selectedConfig?.type);
       setUploadSuccess("File uploaded successfully.");
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       await loadImports();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { detail?: string } } };
