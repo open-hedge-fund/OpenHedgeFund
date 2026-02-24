@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -179,6 +179,31 @@ function ColumnMappingsPanel({
     }
   };
 
+  const filteredGroupedMappings = useMemo(() => {
+    if (!availableMappings) return null;
+    const usedKeys = new Set(mappings.map((m) => `${m.table_mapping}|${m.column_mapping}`));
+    const filtered: Record<string, typeof availableMappings.grouped_mappings[string]> = {};
+    for (const [table, opts] of Object.entries(availableMappings.grouped_mappings)) {
+      const available = opts.filter((opt) => !usedKeys.has(`${table}|${opt.key}`));
+      if (available.length > 0) {
+        filtered[table] = available;
+      }
+    }
+    return filtered;
+  }, [availableMappings, mappings]);
+
+  // Clear selection if the chosen mapping was already used
+  useEffect(() => {
+    if (newMapping && filteredGroupedMappings) {
+      const stillAvailable = Object.entries(filteredGroupedMappings).some(
+        ([table, opts]) => opts.some((opt) => `${table}|${opt.key}` === newMapping),
+      );
+      if (!stillAvailable) {
+        setNewMapping("");
+      }
+    }
+  }, [filteredGroupedMappings, newMapping]);
+
   const handleDelete = async (id: number) => {
     try {
       await columnDefinitionApi.delete(id);
@@ -261,8 +286,8 @@ function ColumnMappingsPanel({
               onChange={(e) => setNewMapping(e.target.value)}
             >
               <option value="">Select mapping...</option>
-              {availableMappings &&
-                Object.entries(availableMappings.grouped_mappings).map(
+              {filteredGroupedMappings &&
+                Object.entries(filteredGroupedMappings).map(
                   ([table, opts]) => (
                     <optgroup
                       key={table}
