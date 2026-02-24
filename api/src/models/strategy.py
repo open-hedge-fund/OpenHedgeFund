@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,6 +10,9 @@ from src.database import Base
 
 class Strategy(Base):
     __tablename__ = "strategies"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "strategy_code", name="uq_strategies_tenant_code"),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     strategy_code: Mapped[str] = mapped_column(String(30), nullable=False)
