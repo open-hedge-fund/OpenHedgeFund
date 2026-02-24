@@ -10,7 +10,7 @@ def fetch_column_definitions(session: Session, file_id: int, tenant_id: str) -> 
     """Load column_definitions rows for a file and return them as ColumnDef objects."""
     result = session.execute(
         text("""
-            SELECT column_name, table_mapping, column_mapping
+            SELECT column_name, table_mapping, column_mapping, date_format
             FROM column_definitions
             WHERE file_id = :file_id AND tenant_id = :tenant_id
         """),
@@ -21,6 +21,7 @@ def fetch_column_definitions(session: Session, file_id: int, tenant_id: str) -> 
             column_name=row.column_name,
             table_mapping=row.table_mapping,
             column_mapping=row.column_mapping,
+            date_format=row.date_format,
         )
         for row in result
     ]

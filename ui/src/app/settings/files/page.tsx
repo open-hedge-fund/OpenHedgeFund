@@ -136,6 +136,7 @@ function ColumnMappingsPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [newColumnName, setNewColumnName] = useState("");
   const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
+  const [newDateFormat, setNewDateFormat] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
@@ -158,6 +159,13 @@ function ColumnMappingsPanel({
     }
   };
 
+  // Check if the currently selected mapping is a date type
+  const selectedMappingKey = newMapping ? newMapping.split("|")[1] : "";
+  const selectedMappingOption = availableMappings?.mappings.find(
+    (m) => m.key === selectedMappingKey,
+  );
+  const isDateMapping = selectedMappingOption?.data_type === "date";
+
   const handleAdd = async () => {
     if (!newColumnName.trim() || !newMapping) return;
     setIsAdding(true);
@@ -168,10 +176,12 @@ function ColumnMappingsPanel({
         column_name: newColumnName.trim(),
         table_mapping: tableMapping,
         column_mapping: columnMapping,
+        date_format: newDateFormat.trim() || null,
       });
       setMappings((prev) => [...prev, created]);
       setNewColumnName("");
       setNewMapping("");
+      setNewDateFormat("");
     } catch {
       alert("Failed to add column mapping");
     } finally {
@@ -211,6 +221,7 @@ function ColumnMappingsPanel({
                 <th>Column Name</th>
                 <th>Table</th>
                 <th>Mapping</th>
+                <th>Date Format</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -225,6 +236,7 @@ function ColumnMappingsPanel({
                   <td>
                     <span className="mapping-badge">{m.column_mapping}</span>
                   </td>
+                  <td>{m.date_format || ""}</td>
                   <td>{formatDate(m.created_at)}</td>
                   <td>
                     <button
@@ -239,7 +251,7 @@ function ColumnMappingsPanel({
               ))}
               {mappings.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="column-mappings-empty">
+                  <td colSpan={6} className="column-mappings-empty">
                     No column mappings defined yet.
                   </td>
                 </tr>
@@ -258,7 +270,10 @@ function ColumnMappingsPanel({
             <select
               className="form-select"
               value={newMapping}
-              onChange={(e) => setNewMapping(e.target.value)}
+              onChange={(e) => {
+                setNewMapping(e.target.value);
+                setNewDateFormat("");
+              }}
             >
               <option value="">Select mapping...</option>
               {availableMappings &&
@@ -277,6 +292,16 @@ function ColumnMappingsPanel({
                   ),
                 )}
             </select>
+            {isDateMapping && (
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Date format (e.g. %m/%d/%Y)"
+                value={newDateFormat}
+                onChange={(e) => setNewDateFormat(e.target.value)}
+                style={{ maxWidth: "200px" }}
+              />
+            )}
             <button
               className="btn btn-primary btn-add-mapping"
               onClick={handleAdd}
