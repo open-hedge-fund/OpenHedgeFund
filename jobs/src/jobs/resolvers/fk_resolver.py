@@ -24,12 +24,12 @@ HOLDINGS_FK_MAP: dict[tuple[str, str], str] = {
 
 # When multiple identifiers resolve to the same FK (e.g. security_id),
 # prefer more precise/unique identifiers over less unique ones.
-# Lower number = higher priority.  ISIN > SEDOL > CUSIP > Symbol.
+# Lower number = higher priority.
 FK_IDENTIFIER_PRIORITY: dict[tuple[str, str], int] = {
-    ("securities", "id_2"): 0,  # ISIN  — globally unique
-    ("securities", "id_3"): 1,  # SEDOL — unique per exchange
-    ("securities", "id_1"): 2,  # CUSIP — North America unique
-    ("securities", "symbol"): 3,  # Symbol — not unique across exchanges
+    ("securities", "id_1"): 0,
+    ("securities", "id_2"): 1,
+    ("securities", "id_3"): 2,
+    ("securities", "symbol"): 3,
 }
 
 # Whitelist for table names used in queries.
