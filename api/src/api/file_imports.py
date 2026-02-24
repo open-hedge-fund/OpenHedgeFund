@@ -35,14 +35,44 @@ async def list_file_imports(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport).options(selectinload(FileImport.imported_by))
+    """List file imports, showing only the latest status per file (DISTINCT ON file_id)."""
+    query = (
+        select(FileImport)
+        .distinct(FileImport.file_id)
+        .options(selectinload(FileImport.imported_by))
+    )
     if not user.is_superuser:
         query = query.where(FileImport.tenant_id == user.tenant_id)
     if status:
         query = query.where(FileImport.status == status)
-    query = query.order_by(desc(FileImport.created_at)).offset(skip).limit(limit)
+    # DISTINCT ON requires the first ORDER BY column to match the DISTINCT ON column
+    query = (
+        query.order_by(FileImport.file_id, desc(FileImport.created_at)).offset(skip).limit(limit)
+    )
     result = await session.execute(query)
     imports = result.scalars().all()
+    return [_with_name(fi) for fi in imports]
+
+
+@router.get("/history/{file_id}", response_model=list[FileImportSchema])
+async def get_file_import_history(
+    file_id: int,
+    session: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    """Return the full audit trail (all status rows) for a specific file."""
+    query = (
+        select(FileImport)
+        .options(selectinload(FileImport.imported_by))
+        .where(FileImport.file_id == file_id)
+    )
+    if not user.is_superuser:
+        query = query.where(FileImport.tenant_id == user.tenant_id)
+    query = query.order_by(desc(FileImport.created_at))
+    result = await session.execute(query)
+    imports = result.scalars().all()
+    if not imports:
+        raise HTTPException(status_code=404, detail="No imports found for this file")
     return [_with_name(fi) for fi in imports]
 
 
@@ -52,7 +82,11 @@ async def get_file_import(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport).options(selectinload(FileImport.imported_by)).where(FileImport.id == import_id)
+    query = (
+        select(FileImport)
+        .options(selectinload(FileImport.imported_by))
+        .where(FileImport.id == import_id)
+    )
     if not user.is_superuser:
         query = query.where(FileImport.tenant_id == user.tenant_id)
     result = await session.execute(query)
