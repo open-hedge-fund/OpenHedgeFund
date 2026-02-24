@@ -12,9 +12,15 @@ def insert_status(session: Session, record: dict, status: str, **extra) -> str:
     new_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc)
 
+    # source_import_id links all audit-trail rows back to the original RECEIVED row.
+    # If the record already has source_import_id, use it; otherwise fall back to
+    # the record's own id (for backwards compatibility with pre-migration rows).
+    source_id = record.get("source_import_id") or record["id"]
+
     params = {
         "id": new_id,
         "file_id": record["file_id"],
+        "source_import_id": source_id,
         "tenant_id": record["tenant_id"],
         "file_name": record["file_name"],
         "file_size": record["file_size"],
@@ -28,13 +34,13 @@ def insert_status(session: Session, record: dict, status: str, **extra) -> str:
     session.execute(
         text("""
             INSERT INTO file_imports
-                (id, file_id, tenant_id, file_name, file_size, imported_by_user_id,
-                 import_type, status, created_at,
+                (id, file_id, source_import_id, tenant_id, file_name, file_size,
+                 imported_by_user_id, import_type, status, created_at,
                  started_at, completed_at, rows_processed, rows_failed,
                  error_message, error_details)
             VALUES
-                (:id, :file_id, :tenant_id, :file_name, :file_size, :imported_by_user_id,
-                 :import_type, :status, :created_at,
+                (:id, :file_id, :source_import_id, :tenant_id, :file_name, :file_size,
+                 :imported_by_user_id, :import_type, :status, :created_at,
                  :started_at, :completed_at, :rows_processed, :rows_failed,
                  :error_message, CAST(:error_details AS jsonb))
         """),

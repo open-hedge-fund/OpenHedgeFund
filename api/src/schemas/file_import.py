@@ -29,6 +29,7 @@ class FileImportUpdate(BaseModel):
 class FileImportSchema(FileImportBase):
     id: uuid.UUID
     file_id: int | None = None
+    source_import_id: uuid.UUID | None = None
     rows_processed: int | None = None
     rows_failed: int | None = None
     started_at: datetime | None = None

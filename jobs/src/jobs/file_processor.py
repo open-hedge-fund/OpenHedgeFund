@@ -96,8 +96,8 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         # ── fetch the original RECEIVED record ──────────────────────────
         result = session.execute(
             text("""
-                SELECT id, file_id, tenant_id, file_name, file_size,
-                       imported_by_user_id, import_type
+                SELECT id, file_id, source_import_id, tenant_id, file_name,
+                       file_size, imported_by_user_id, import_type
                 FROM file_imports
                 WHERE id = :fid
             """),

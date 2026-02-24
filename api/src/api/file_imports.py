@@ -2,7 +2,7 @@ import uuid
 
 from celery import Celery
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File as FastAPIFile
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -32,18 +32,89 @@ async def list_file_imports(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     status: str | None = Query(None),
+    latest_only: bool = Query(
+        False, description="Return only the latest status row per file upload"
+    ),
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport).options(selectinload(FileImport.imported_by))
-    if not user.is_superuser:
-        query = query.where(FileImport.tenant_id == user.tenant_id)
-    if status:
-        query = query.where(FileImport.status == status)
+    if latest_only:
+        # Subquery: for each source_import_id group, find the max created_at.
+        # This gives us the latest audit-trail row per upload event.
+        latest_sub = (
+            select(func.max(FileImport.created_at).label("max_created"))
+            .where(FileImport.tenant_id == user.tenant_id)
+            .where(FileImport.source_import_id.is_not(None))
+            .group_by(FileImport.source_import_id)
+            .subquery()
+        )
+
+        query = (
+            select(FileImport)
+            .options(selectinload(FileImport.imported_by))
+            .where(FileImport.created_at.in_(select(latest_sub.c.max_created)))
+        )
+        if not user.is_superuser:
+            query = query.where(FileImport.tenant_id == user.tenant_id)
+        if status:
+            query = query.where(FileImport.status == status)
+    else:
+        query = select(FileImport).options(selectinload(FileImport.imported_by))
+        if not user.is_superuser:
+            query = query.where(FileImport.tenant_id == user.tenant_id)
+        if status:
+            query = query.where(FileImport.status == status)
+
     query = query.order_by(desc(FileImport.created_at)).offset(skip).limit(limit)
     result = await session.execute(query)
     imports = result.scalars().all()
     return [_with_name(fi) for fi in imports]
+
+
+@router.get("/by-file/{file_id}/latest", response_model=FileImportSchema)
+async def get_latest_file_import_by_file(
+    file_id: int,
+    session: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    """Get the latest import status row for a given file configuration."""
+    query = (
+        select(FileImport)
+        .options(selectinload(FileImport.imported_by))
+        .where(FileImport.file_id == file_id)
+        .order_by(desc(FileImport.created_at))
+        .limit(1)
+    )
+    if not user.is_superuser:
+        query = query.where(FileImport.tenant_id == user.tenant_id)
+    result = await session.execute(query)
+    file_import = result.scalar_one_or_none()
+    if not file_import:
+        raise HTTPException(status_code=404, detail="No imports found for this file")
+    return _with_name(file_import)
+
+
+@router.get("/by-source/{source_import_id}/latest", response_model=FileImportSchema)
+async def get_latest_by_source(
+    source_import_id: uuid.UUID,
+    session: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    """Get the latest status row for a specific upload event (tracked by source_import_id)."""
+    query = (
+        select(FileImport)
+        .options(selectinload(FileImport.imported_by))
+        .where(FileImport.source_import_id == source_import_id)
+        .order_by(desc(FileImport.created_at))
+        .limit(1)
+    )
+    if not user.is_superuser:
+        query = query.where(FileImport.tenant_id == user.tenant_id)
+    result = await session.execute(query)
+    file_import = result.scalar_one_or_none()
+    if not file_import:
+        raise HTTPException(status_code=404, detail="File import not found")
+    return _with_name(file_import)
 
 
 @router.get("/{import_id}", response_model=FileImportSchema)
@@ -52,7 +123,11 @@ async def get_file_import(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    query = select(FileImport).options(selectinload(FileImport.imported_by)).where(FileImport.id == import_id)
+    query = (
+        select(FileImport)
+        .options(selectinload(FileImport.imported_by))
+        .where(FileImport.id == import_id)
+    )
     if not user.is_superuser:
         query = query.where(FileImport.tenant_id == user.tenant_id)
     result = await session.execute(query)
@@ -88,6 +163,7 @@ async def upload_file(
     file_import = FileImport(
         id=file_import_id,
         file_id=file_id,
+        source_import_id=file_import_id,
         import_type="manual",
         status="RECEIVED",
         file_name=file.filename,

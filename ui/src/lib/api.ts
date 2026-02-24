@@ -151,6 +151,7 @@ export const columnDefinitionApi = {
 export interface FileImportData {
   id: string;
   file_id: number | null;
+  source_import_id: string | null;
   import_type: string;
   status: string;
   file_name: string | null;
@@ -168,8 +169,16 @@ export interface FileImportData {
 }
 
 export const fileImportApi = {
-  getImports: async (limit = 20): Promise<FileImportData[]> => {
-    const response = await api.get("/file-imports/", { params: { limit } });
+  getImports: async (limit = 20, latestOnly = false): Promise<FileImportData[]> => {
+    const response = await api.get("/file-imports/", { params: { limit, latest_only: latestOnly } });
+    return response.data;
+  },
+  getLatestByFile: async (fileId: number): Promise<FileImportData> => {
+    const response = await api.get(`/file-imports/by-file/${fileId}/latest`);
+    return response.data;
+  },
+  getLatestBySource: async (sourceImportId: string): Promise<FileImportData> => {
+    const response = await api.get(`/file-imports/by-source/${sourceImportId}/latest`);
     return response.data;
   },
   uploadFile: async (

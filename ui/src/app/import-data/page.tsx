@@ -118,7 +118,7 @@ function ImportDataContent() {
   const loadImports = async () => {
     try {
       setImportsLoading(true);
-      const data = await fileImportApi.getImports(20);
+      const data = await fileImportApi.getImports(20, true);
       setImports(data);
     } catch {
       console.error("Error loading imports");

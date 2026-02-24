@@ -1,7 +1,16 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,17 +20,21 @@ from src.database import Base
 class FileImport(Base):
     __tablename__ = "file_imports"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     file_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("files.id", ondelete="SET NULL"), nullable=True
+    )
+    source_import_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, index=True
     )
 
     import_type: Mapped[str] = mapped_column(String(20), nullable=False)
     status: Mapped[str] = mapped_column(
         String(20),
-        CheckConstraint("status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'FAILED')", name="ck_file_imports_status"),
+        CheckConstraint(
+            "status IN ('RECEIVED', 'PROCESSING', 'PROCESSED', 'FAILED')",
+            name="ck_file_imports_status",
+        ),
         nullable=False,
     )
 
@@ -32,12 +45,8 @@ class FileImport(Base):
     rows_processed: Mapped[int | None] = mapped_column(Integer, nullable=True)
     rows_failed: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -50,9 +59,7 @@ class FileImport(Base):
         UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), onupdate=func.now()
     )
