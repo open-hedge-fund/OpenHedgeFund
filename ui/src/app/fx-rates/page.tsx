@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/DashboardLayout";
 import { fxRateApi, FxRateData, currencyApi, CurrencyData } from "@/lib/api";
@@ -20,16 +20,24 @@ function FxRatesContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   useEffect(() => {
-    loadData();
+    loadInitial();
   }, []);
 
-  async function loadData() {
+  useEffect(() => {
+    if (selectedDate) {
+      loadRates(selectedDate);
+    }
+  }, [selectedDate]);
+
+  async function loadInitial() {
     try {
       setIsLoading(true);
-      const [ratesData, ccyData] = await Promise.all([
-        fxRateApi.getAll(),
+      const [dates, ccyData] = await Promise.all([
+        fxRateApi.getDates(),
         currencyApi.getAll(),
       ]);
 
@@ -37,8 +45,25 @@ function FxRatesContent() {
       ccyData.forEach((c: CurrencyData) => {
         ccyLookup[c.id] = c.ccy;
       });
-
       setCurrencies(ccyLookup);
+      setAvailableDates(dates);
+
+      if (dates.length > 0) {
+        setSelectedDate(dates[0]);
+      } else {
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load FX rates");
+      setIsLoading(false);
+    }
+  }
+
+  async function loadRates(date: string) {
+    try {
+      setIsLoading(true);
+      setError("");
+      const ratesData = await fxRateApi.getAll({ rate_date: date });
       setItems(ratesData);
     } catch (err: any) {
       setError(err.message || "Failed to load FX rates");
@@ -47,13 +72,15 @@ function FxRatesContent() {
     }
   }
 
-  const filteredItems = items.filter((item) => {
+  const filteredItems = useMemo(() => {
+    if (!searchQuery) return items;
     const q = searchQuery.toLowerCase();
-    const ccyCode = currencies[item.currency_id]?.toLowerCase() || "";
-    const refCode = currencies[item.ref_currency_id]?.toLowerCase() || "";
-    const dateStr = item.rate_date || "";
-    return ccyCode.includes(q) || refCode.includes(q) || dateStr.includes(q);
-  });
+    return items.filter((item) => {
+      const ccyCode = currencies[item.currency_id]?.toLowerCase() || "";
+      const refCode = currencies[item.ref_currency_id]?.toLowerCase() || "";
+      return ccyCode.includes(q) || refCode.includes(q);
+    });
+  }, [items, searchQuery, currencies]);
 
   return (
     <div>
@@ -65,12 +92,25 @@ function FxRatesContent() {
           </div>
         </div>
 
-        <div className="files-search">
+        <div className="files-search" style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+          <select
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            style={{ padding: "0.5rem", borderRadius: "0.375rem", border: "1px solid #D1D5DB", fontSize: "0.875rem" }}
+          >
+            {availableDates.length === 0 && <option value="">No dates available</option>}
+            {availableDates.map((d) => (
+              <option key={d} value={d}>
+                {formatDate(d)}
+              </option>
+            ))}
+          </select>
           <input
             type="text"
-            placeholder="Search by currency code or date..."
+            placeholder="Search by currency code..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: 1 }}
           />
         </div>
 

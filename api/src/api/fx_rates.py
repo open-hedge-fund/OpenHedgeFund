@@ -1,7 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.auth import current_active_user
@@ -11,6 +11,20 @@ from src.models.user import User
 from src.schemas.fx_rate import FxRateCreate, FxRateSchema, FxRateUpdate
 
 router = APIRouter(prefix="/fx-rates", tags=["fx-rates"])
+
+
+@router.get("/dates", response_model=list[date])
+async def list_fx_rate_dates(
+    session: AsyncSession = Depends(get_async_session),
+    user: User = Depends(current_active_user),
+):
+    """Return distinct rate dates in descending order."""
+    query = select(func.distinct(FxRate.rate_date))
+    if not user.is_superuser:
+        query = query.where(FxRate.tenant_id == user.tenant_id)
+    query = query.order_by(FxRate.rate_date.desc())
+    result = await session.execute(query)
+    return result.scalars().all()
 
 
 @router.get("/", response_model=list[FxRateSchema])

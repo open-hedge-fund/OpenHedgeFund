@@ -650,6 +650,10 @@ export const fxRateApi = {
     const response = await api.get("/fx-rates/", { params });
     return response.data;
   },
+  getDates: async (): Promise<string[]> => {
+    const response = await api.get("/fx-rates/dates");
+    return response.data;
+  },
   create: async (data: FxRateCreateData): Promise<FxRateData> => {
     const response = await api.post("/fx-rates/", data);
     return response.data;
