@@ -140,7 +140,9 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
         )
 
         # ── 4. resolve foreign keys ────────────────────────────────────
-        df = resolve_foreign_keys(df, col_defs, COLUMN_MAPPINGS, session, str(record["tenant_id"]))
+        df, auto_created = resolve_foreign_keys(df, col_defs, COLUMN_MAPPINGS, session, str(record["tenant_id"]))
+        if auto_created:
+            logger.info("Auto-created %d new securities", auto_created)
 
         # ── 5. recount after FK resolution (may have added errors) ─────
         has_errors = df["_errors"].apply(len) > 0
@@ -179,6 +181,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
             "rows_processed": valid_rows,
             "rows_failed": failed_rows,
             "inserted": inserted,
+            "securities_auto_created": auto_created,
         }
 
     except Exception as e:
