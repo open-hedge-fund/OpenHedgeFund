@@ -102,7 +102,12 @@ def _convert_value(raw, mapping: ColumnMapping, holdings_col: str):
     """Convert a raw string value to the appropriate Python type."""
     if mapping.data_type == "decimal":
         try:
-            return Decimal(str(raw).strip())
+            val = str(raw).strip()
+            # Handle parentheses-style negatives: (500.00) → -500.00
+            if val.startswith("(") and val.endswith(")"):
+                val = "-" + val[1:-1].strip()
+            val = val.replace(",", "")
+            return Decimal(val)
         except (InvalidOperation, ValueError):
             return None
 
