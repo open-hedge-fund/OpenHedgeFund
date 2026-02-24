@@ -99,7 +99,7 @@ function FxRatesContent() {
                   const ccy = currencies[item.currency_id] || "?";
                   return (
                     <tr key={item.id}>
-                      <td>{item.rate_date}</td>
+                      <td>{formatDate(item.rate_date)}</td>
                       <td>
                         <span style={{ display: "inline-flex", padding: "0.125rem 0.5rem", fontSize: "0.75rem", fontWeight: 600, borderRadius: "0.25rem", backgroundColor: "#DBEAFE", color: "#1E40AF" }}>
                           {refCcy}/{ccy}
