@@ -3,9 +3,9 @@
 
 REPO="OpenHedgeFund"
 OWNER="$(gh repo view --json owner -q .owner.login)"
-MAX_TURNS=50
-LABEL=""  # optional: filter by label e.g. "bug" or "enhancement"
-LIMIT=10  # max issues to process
+MAX_TURNS=200
+LABEL="openhedgefund"
+LIMIT=30  # process all openhedgefund issues
 
 # Fetch open issues
 if [ -n "$LABEL" ]; then
@@ -66,8 +66,8 @@ Important:
     echo "Issue #$NUMBER done — log at /tmp/claude-issue-${NUMBER}.log"
   ) &
 
-  # Stagger launches to avoid rate limits
-  sleep 10
+  # Stagger launches to avoid rate limits — we have all night
+  sleep 60
 done
 
 echo ""
