@@ -212,7 +212,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <li key={item.label} className="sidebar-menu-item">
                 <Link
                   href={item.href}
-                  className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}
+                  className={`sidebar-menu-link${(item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) ? " active" : ""}`}
                 >
                   <span className="sidebar-menu-link-icon">
                     <item.icon size={22} />
@@ -232,7 +232,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <li key={item.label} className="sidebar-menu-item">
                 <Link
                   href={item.href}
-                  className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}
+                  className={`sidebar-menu-link${(item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) ? " active" : ""}`}
                 >
                   <span className="sidebar-menu-link-icon">
                     <item.icon size={22} />
@@ -250,7 +250,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <ul className="sidebar-menu">
             {visibleSettingsItems.map((item) => (
               <li key={item.label} className="sidebar-menu-item">
-                <Link href={item.href} className={`sidebar-menu-link${pathname === item.href ? " active" : ""}`}>
+                <Link href={item.href} className={`sidebar-menu-link${(item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) ? " active" : ""}`}>
                   <span className="sidebar-menu-link-icon">
                     <item.icon size={22} />
                   </span>
