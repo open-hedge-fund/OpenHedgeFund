@@ -18,9 +18,8 @@ from src.database import get_session
 from src.jobs.helpers.column_definitions import fetch_column_definitions
 from src.jobs.helpers.file_loader import load_to_dataframe
 from src.jobs.helpers.status_writer import insert_status
-from src.jobs.builders.position_builder import build_positions
+from src.jobs.builders.position_builder import build_and_insert_positions
 from src.jobs.inserters.holdings_inserter import insert_holdings
-from src.jobs.inserters.positions_inserter import insert_positions
 from src.jobs.resolvers.fk_resolver import resolve_foreign_keys
 from src.jobs.transformers import normalize_numeric_columns
 from src.jobs.validators import (
@@ -103,7 +102,7 @@ def _extract_holding_dates(
     return [d for d in parsed.dropna().unique()]
 
 
-def _build_and_insert_positions(
+def _rebuild_positions(
     session: Session,
     tenant_id: str,
     holding_dates: list,
@@ -111,8 +110,7 @@ def _build_and_insert_positions(
     """Rebuild positions for the given date(s) and tenant."""
     total = 0
     for holding_date in holding_dates:
-        positions_df = build_positions(session, holding_date, tenant_id)
-        count = insert_positions(positions_df, session, holding_date, tenant_id)
+        count = build_and_insert_positions(session, holding_date, tenant_id)
         total += count
 
     if total:
@@ -214,7 +212,7 @@ def process_file_import(file_import_id: str, file_content: str, file_type: str) 
 
             # ── 6b. build positions from ALL holdings for each date ──────
             holding_dates = _extract_holding_dates(df, col_defs)
-            positions_created = _build_and_insert_positions(
+            positions_created = _rebuild_positions(
                 session,
                 str(record["tenant_id"]),
                 holding_dates,

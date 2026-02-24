@@ -1,84 +1,75 @@
-"""Aggregates holdings into positions for a given date and tenant."""
+"""Aggregates holdings into positions for a given date and tenant.
+
+Uses SQL-level aggregation to avoid Decimal→float precision loss
+and keep all data processing inside PostgreSQL.
+"""
 
 import logging
 from datetime import date
 
-import pandas as pd
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-POSITION_KEYS = [
-    "holding_date",
-    "security_id",
-    "fund_id",
-    "side",
-    "strategy_id",
-    "ccy_id",
-]
+AGGREGATE_SQL = text("""
+    INSERT INTO positions
+        (position_date, security_id, fund_id, side, strategy_id, ccy_id,
+         quantity, cost, price_local, price_base,
+         outstanding_shares, market_cap, tenant_id)
+    SELECT
+        holding_date,
+        security_id,
+        fund_id,
+        side,
+        strategy_id,
+        ccy_id,
+        SUM(quantity_end),
+        SUM(cost_base),
+        (array_agg(price_local ORDER BY id))[1],
+        (array_agg(price_base  ORDER BY id))[1],
+        (array_agg(outstanding_shares ORDER BY id))[1],
+        (array_agg(market_cap ORDER BY id))[1],
+        :tenant_id
+    FROM holdings
+    WHERE holding_date = :holding_date
+      AND tenant_id = :tenant_id
+    GROUP BY holding_date, security_id, fund_id, side, strategy_id, ccy_id
+""")
+
+DELETE_SQL = text("""
+    DELETE FROM positions
+    WHERE position_date = :holding_date
+      AND tenant_id = :tenant_id
+""")
 
 
-def build_positions(
+def build_and_insert_positions(
     session: Session,
     holding_date: date,
     tenant_id: str,
-) -> pd.DataFrame:
-    """Query all holdings for the date/tenant and aggregate into positions.
+) -> int:
+    """Delete existing positions for the date/tenant, then rebuild from holdings.
 
-    Returns a DataFrame ready for insertion into the positions table.
+    All aggregation runs inside PostgreSQL so NUMERIC precision is preserved
+    and no holdings data is loaded into Python memory.
+
+    Returns the count of inserted positions.
     """
+    # Delete existing positions (idempotent re-runs)
     result = session.execute(
-        text("""
-            SELECT holding_date, security_id, fund_id, side,
-                   strategy_id, ccy_id,
-                   quantity_end, cost_base,
-                   price_local, price_base,
-                   outstanding_shares, market_cap
-            FROM holdings
-            WHERE holding_date = :holding_date
-              AND tenant_id = :tenant_id
-        """),
+        DELETE_SQL,
         {"holding_date": holding_date, "tenant_id": tenant_id},
     )
-    rows = result.mappings().all()
+    deleted = result.rowcount
+    if deleted:
+        logger.info("Deleted %d existing positions for %s", deleted, holding_date)
 
-    if not rows:
-        logger.info("No holdings found for %s / tenant %s", holding_date, tenant_id)
-        return pd.DataFrame()
-
-    holdings_df = pd.DataFrame(rows)
-    logger.info(
-        "Loaded %d holdings for %s to aggregate into positions",
-        len(holdings_df),
-        holding_date,
+    # Aggregate holdings → positions in a single INSERT...SELECT
+    result = session.execute(
+        AGGREGATE_SQL,
+        {"holding_date": holding_date, "tenant_id": tenant_id},
     )
-
-    positions = (
-        holdings_df.groupby(POSITION_KEYS, dropna=False)
-        .agg(
-            {
-                "quantity_end": "sum",
-                "cost_base": "sum",
-                "price_local": "first",
-                "price_base": "first",
-                "outstanding_shares": "first",
-                "market_cap": "first",
-            }
-        )
-        .reset_index()
-    )
-
-    positions.rename(
-        columns={
-            "holding_date": "position_date",
-            "quantity_end": "quantity",
-            "cost_base": "cost",
-        },
-        inplace=True,
-    )
-
-    positions["tenant_id"] = tenant_id
-
-    logger.info("Built %d positions from holdings", len(positions))
-    return positions
+    inserted = result.rowcount
+    logger.info("Built %d positions from holdings for %s", inserted, holding_date)
+    return inserted
