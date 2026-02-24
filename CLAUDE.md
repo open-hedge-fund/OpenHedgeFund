@@ -34,10 +34,25 @@ npm run lint         # eslint
 npm test             # jest
 ```
 
-### Rebuilding after API changes
-The API runs in Docker. After modifying Python files, rebuild:
+### Jobs (local development, requires `docker compose up db redis`)
 ```bash
-docker compose up -d --build api
+cd jobs && source .venv/bin/activate
+pip install -e .                        # install dependencies (creates openhedgefund_jobs.egg-info/)
+python debug_runner.py fx               # run FX rate fetcher locally
+python debug_runner.py file <import_id> # run file processor locally
+```
+
+### Rebuilding after changes
+Services run in Docker. After modifying Python files, rebuild:
+```bash
+docker compose up -d --build api                    # API changes
+docker compose up -d --build jobs-worker jobs-beat   # Jobs changes
+```
+
+**Important:** Alembic inside Docker requires explicit PYTHONPATH:
+```bash
+docker compose exec -e PYTHONPATH=/app api alembic upgrade head
+docker compose exec -e PYTHONPATH=/app api alembic downgrade -1
 ```
 
 ## Architecture
@@ -74,6 +89,53 @@ Every resource is scoped to a **tenant**. On user registration, a Tenant is auto
 - Sidebar menu items configured as arrays in `ui/src/components/Sidebar.tsx`
 - Constrained values (like file names/types) are defined as const arrays in the page component
 
+### Jobs Service
+- **Celery** workers (synchronous Python) — separate from FastAPI (async Python)
+- **Sync SQLAlchemy** (`create_engine` + `sessionmaker`) in `jobs/src/database.py` — NOT async
+- Jobs do NOT go through the API — they connect directly to the database
+- `column_mapper.py` is duplicated between `api/` and `jobs/` (separate containers can't share imports)
+
+### Jobs Service Structure
+```
+jobs/src/
+├── celery_app.py          # Celery config + beat schedule
+├── database.py            # Sync SQLAlchemy engine + get_session()
+├── tasks.py               # Celery task registry (entry points)
+├── column_mapper.py       # Column mapping config (duplicated from api/)
+├── jobs/
+│   ├── file_processor.py  # File import ETL orchestrator
+│   ├── fx_rate_fetcher.py # FX rate fetcher (multi-tenant, free API)
+│   ├── helpers/
+│   │   ├── file_loader.py       # CSV/pipe-delimited parser → DataFrame
+│   │   ├── status_writer.py     # Audit trail: insert_status() for file_imports
+│   │   └── column_definitions.py # Fetch column_definitions from DB
+│   ├── inserters/
+│   │   └── holdings_inserter.py # Upserts holdings rows from DataFrame
+│   ├── resolvers/
+│   │   └── fk_resolver.py      # Resolves foreign keys (symbol/ISIN/SEDOL → security_id)
+│   └── validators/
+│       ├── base.py              # BaseValidator + ColumnDef/ValidationContext
+│       ├── required_validator.py
+│       ├── date_validator.py
+│       ├── decimal_validator.py
+│       ├── side_validator.py
+│       └── reference_validator.py
+```
+
+### File Import ETL Pipeline
+`file_processor.py` orchestrates: **Load → Validate → Resolve FKs → Insert → Report errors**
+1. Fetches the RECEIVED file_import record and column_definitions
+2. Loads raw file content into a pandas DataFrame (`file_loader.py`)
+3. Runs validators (required, date, decimal, side, reference) — validators flag errors but don't modify data
+4. Resolves foreign keys (FK resolver: first-win pattern when multiple identifiers map to same FK)
+5. Inserts/upserts holdings via `holdings_inserter.py`
+6. Reports errors back to file_imports as audit trail rows (RECEIVED → PROCESSING → PROCESSED/FAILED)
+
+### FX Rate Fetcher
+- Uses free exchangerate-api with frankfurter.dev as fallback
+- Multi-tenant: loops through ALL tenants and upserts rates for each
+- Returns `{"date": ..., "tenants": [per-tenant summaries]}`
+
 ### Enum Constraints
 When adding restricted value fields, enforce at all three layers:
 1. **Database:** Python `enum.Enum` + SQLAlchemy `Enum(MyEnum, native_enum=False, values_callable=lambda e: [x.value for x in e])` + CHECK constraint in migration
@@ -91,6 +153,11 @@ When adding restricted value fields, enforce at all three layers:
 - **500** — `ui/src/app/500/page.tsx` (redirect here for server errors)
 - **503** — `ui/src/app/503/page.tsx` (redirect here for maintenance)
 - Shared component: `ui/src/components/ErrorPage.tsx`
+
+### Debugging (VS Code)
+- Launch configurations in `.vscode/launch.json` for FX Rate Fetcher and File Processor
+- Uses `jobs/.venv/bin/python` with `cwd` set to `jobs/`
+- Entry point: `jobs/debug_runner.py`
 
 ## Services (docker-compose)
 | Service | Port | Description |
