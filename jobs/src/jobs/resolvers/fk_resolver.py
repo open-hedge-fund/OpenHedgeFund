@@ -44,6 +44,14 @@ ALLOWED_TABLES = frozenset(
 # Tables where missing values are auto-created instead of flagged as errors.
 AUTO_CREATE_TABLES: frozenset[str] = frozenset({"securities"})
 
+# Values that should be treated as NULL (pandas NaN stringified).
+_NULL_STRINGS: frozenset[str] = frozenset({"NAN", "NONE", "NULL", "NA", ""})
+
+
+def _is_null_value(val: str) -> bool:
+    """Return True if *val* is a stringified null/NaN."""
+    return val.strip().upper() in _NULL_STRINGS
+
 
 def resolve_foreign_keys(
     df: pd.DataFrame,
@@ -60,6 +68,14 @@ def resolve_foreign_keys(
     # Track (table_name, db_field) per resolved column for auto-creation.
     resolved_meta: dict[str, tuple[str, str, str]] = {}  # resolved_name → (table, field, src_col)
     auto_created_count = 0
+
+    # Build a map of all security identifier columns available in the DataFrame
+    # so auto-creation can populate multiple fields (e.g. symbol + id_1).
+    security_field_cols: dict[str, str] = {}  # db_field → DataFrame column name
+    for cd in col_defs:
+        m = mappings.get(cd.column_mapping)
+        if m and m.table_name == "securities" and cd.column_name in df.columns:
+            security_field_cols.setdefault(m.db_field, cd.column_name)
 
     # Sort col_defs so higher-priority identifiers are resolved first.
     # For entries not in the priority map, use a high default so they
@@ -88,10 +104,6 @@ def resolve_foreign_keys(
 
         resolved_name = f"_resolved_{fk_col}"
 
-        # Skip if this FK was already resolved by a previous column.
-        if resolved_name in resolved_cols:
-            continue
-
         col = col_def.column_name
         if col not in df.columns:
             continue
@@ -100,10 +112,23 @@ def resolve_foreign_keys(
             continue
 
         id_map = _build_id_map(session, mapping.table_name, mapping.db_field, tenant_id)
-        df[resolved_name] = df[col].astype(str).str.strip().str.upper().map(id_map)
-        resolved_cols.add(resolved_name)
-        resolved_meta[resolved_name] = (mapping.table_name, mapping.db_field, col)
-        logger.info("Resolved %s → %s (%d unique values)", col, resolved_name, len(id_map))
+
+        if resolved_name not in resolved_cols:
+            # First identifier for this FK — create the resolved column.
+            df[resolved_name] = df[col].astype(str).str.strip().str.upper().map(id_map)
+            resolved_cols.add(resolved_name)
+            resolved_meta[resolved_name] = (mapping.table_name, mapping.db_field, col)
+            logger.info("Resolved %s → %s (%d unique values)", col, resolved_name, len(id_map))
+        else:
+            # Fill gaps: for rows still unresolved, try this lower-priority identifier.
+            still_na = df[resolved_name].isna()
+            if not still_na.any():
+                continue
+            fallback = df.loc[still_na, col].astype(str).str.strip().str.upper().map(id_map)
+            filled = fallback.dropna()
+            if not filled.empty:
+                df.loc[filled.index, resolved_name] = filled
+                logger.info("Backfilled %d rows for %s via %s", len(filled), resolved_name, col)
 
     # For mapped FKs that were resolved, flag rows where the value wasn't found.
     has_errors = df["_errors"].apply(len) > 0
@@ -118,21 +143,26 @@ def resolve_foreign_keys(
         table, field, src_col = resolved_meta[resolved_name]
 
         if table in AUTO_CREATE_TABLES:
-            # Auto-create securities for missing values.
-            missing_values = (
-                df.loc[missing_fk, src_col]
-                .astype(str).str.strip().str.upper()
-                .unique()
-                .tolist()
+            # Auto-create securities for rows still missing a resolved FK.
+            # For each unresolved row, pick the best available identifier.
+            rows_to_create = _collect_rows_for_auto_creation(
+                df, missing_fk, security_field_cols,
             )
-            new_ids = _auto_create_securities(session, missing_values, field, tenant_id)
-            auto_created_count += len(new_ids)
 
-            # Re-map the missing rows using the newly created IDs.
-            upper_vals = df[src_col].astype(str).str.strip().str.upper()
-            df.loc[missing_fk, resolved_name] = upper_vals[missing_fk].map(new_ids)
+            if rows_to_create:
+                new_ids = _auto_create_securities_batch(
+                    session, rows_to_create, tenant_id,
+                )
+                auto_created_count += len(new_ids)
 
-            # Flag any still-unresolved rows (should not happen, but be safe).
+                # Re-map: for each row, look up its identifier value in new_ids.
+                for idx, fields in rows_to_create.items():
+                    # The key in new_ids is the first field's UPPER value.
+                    key = next(iter(fields.values())).upper()
+                    if key in new_ids:
+                        df.at[idx, resolved_name] = new_ids[key]
+
+            # Flag rows that are still unresolved (all identifiers were null).
             still_missing = missing_fk & df[resolved_name].isna()
             if still_missing.any():
                 for idx in df.index[still_missing]:
@@ -148,37 +178,90 @@ def resolve_foreign_keys(
     return df, auto_created_count
 
 
-def _auto_create_securities(
+def _collect_rows_for_auto_creation(
+    df: pd.DataFrame,
+    missing_fk: pd.Series,
+    security_field_cols: dict[str, str],
+) -> dict[int, dict[str, str]]:
+    """For each unresolved row, collect all non-null security identifier values.
+
+    Returns ``{row_index: {db_field: value, ...}}``.
+    Rows where all identifier columns are null are skipped.
+    """
+    allowed_fields = {"symbol", "id_1", "id_2", "id_3"}
+    rows: dict[int, dict[str, str]] = {}
+
+    for idx in df.index[missing_fk]:
+        fields: dict[str, str] = {}
+        for db_field, col_name in security_field_cols.items():
+            if db_field not in allowed_fields:
+                continue
+            cell = df.at[idx, col_name]
+            if cell is None:
+                continue
+            s = str(cell).strip()
+            if not _is_null_value(s):
+                fields[db_field] = s
+        if fields:
+            rows[idx] = fields
+
+    return rows
+
+
+def _auto_create_securities_batch(
     session: Session,
-    missing_values: list[str],
-    db_field: str,
+    rows_to_create: dict[int, dict[str, str]],
     tenant_id: str,
 ) -> dict[str, int]:
-    """Insert new securities for each missing value and return {UPPER(value): new_id}."""
-    if not missing_values:
+    """Insert new securities and return {UPPER(first_identifier): new_id}.
+
+    Deduplicates by the full set of identifier values so the same security
+    is only created once even if it appears on multiple rows.
+    """
+    if not rows_to_create:
         return {}
 
-    # Validate db_field against known security identifier columns.
-    allowed_fields = {"symbol", "id_1", "id_2", "id_3"}
-    if db_field not in allowed_fields:
-        logger.warning("Cannot auto-create securities for field: %s", db_field)
-        return {}
+    # Deduplicate: group rows by their identifier signature.
+    # Key = frozenset of (db_field, UPPER(value)) pairs.
+    unique_secs: dict[frozenset, dict[str, str]] = {}
+    row_to_key: dict[int, frozenset] = {}
+    for idx, fields in rows_to_create.items():
+        sig = frozenset((k, v.upper()) for k, v in fields.items())
+        unique_secs[sig] = fields
+        row_to_key[idx] = sig
 
-    new_ids: dict[str, int] = {}
-    for val in missing_values:
+    new_ids: dict[str, int] = {}  # UPPER(first_value) → id
+    sig_to_id: dict[frozenset, int] = {}
+
+    for sig, fields in unique_secs.items():
+        col_names = ", ".join(fields.keys())
+        placeholders = ", ".join(f":{k}" for k in fields.keys())
+        params = {"tid": tenant_id}
+        for k, v in fields.items():
+            params[k] = v
+
         result = session.execute(
             text(
-                f"INSERT INTO securities (tenant_id, is_active, {db_field}) "
-                f"VALUES (:tid, true, :val) "
+                f"INSERT INTO securities (tenant_id, is_active, {col_names}) "
+                f"VALUES (:tid, true, {placeholders}) "
                 f"RETURNING id"
             ),
-            {"tid": tenant_id, "val": val},
+            params,
         )
         new_id = result.scalar_one()
-        new_ids[val] = new_id
+        sig_to_id[sig] = new_id
+
+        # Map each identifier value to this ID for re-mapping.
+        for _field, val in fields.items():
+            new_ids[val.upper()] = new_id
+
+    # Also map row indices directly for accurate re-mapping.
+    for idx, sig in row_to_key.items():
+        first_val = next(iter(rows_to_create[idx].values())).upper()
+        new_ids[first_val] = sig_to_id[sig]
 
     session.flush()
-    logger.info("Auto-created %d securities via %s", len(new_ids), db_field)
+    logger.info("Auto-created %d unique securities", len(sig_to_id))
     return new_ids
 
 
