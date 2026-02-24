@@ -22,7 +22,7 @@ async def list_fx_rate_dates(
     query = select(func.distinct(FxRate.rate_date))
     if not user.is_superuser:
         query = query.where(FxRate.tenant_id == user.tenant_id)
-    query = query.order_by(FxRate.rate_date.desc())
+    query = query.order_by(FxRate.rate_date.desc()).limit(5)
     result = await session.execute(query)
     return result.scalars().all()
 
