@@ -1,7 +1,7 @@
 """create brokers table
 
 Revision ID: b2c3d4e5f6a7
-Revises: a1b2c3d4e5f6
+Revises: 95fcdb8dd287
 Create Date: 2026-02-24 14:00:00.000000
 """
 from typing import Sequence, Union
@@ -29,14 +29,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
 
-    # Add broker_id to holdings
-    op.add_column('holdings', sa.Column('broker_id', sa.BigInteger(), nullable=True))
-    op.create_foreign_key('fk_holdings_broker_id', 'holdings', 'brokers', ['broker_id'], ['id'])
-
 
 def downgrade() -> None:
-    # Remove broker_id from holdings
-    op.drop_constraint('fk_holdings_broker_id', 'holdings', type_='foreignkey')
-    op.drop_column('holdings', 'broker_id')
-
     op.drop_table('brokers')

@@ -1,7 +1,7 @@
 """create strategies table
 
 Revision ID: 95fcdb8dd287
-Revises: c3d4e5f6a7b8
+Revises: 6b843a246174
 Create Date: 2026-02-24 13:25:04.890032
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '95fcdb8dd287'
-down_revision: Union[str, None] = 'c3d4e5f6a7b8'
+down_revision: Union[str, None] = '6b843a246174'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

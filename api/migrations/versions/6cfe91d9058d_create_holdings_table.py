@@ -1,7 +1,7 @@
 """create holdings table
 
 Revision ID: 6cfe91d9058d
-Revises: 6b843a246174
+Revises: b2c3d4e5f6a7
 Create Date: 2026-02-17 18:16:39.110055
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '6cfe91d9058d'
-down_revision: Union[str, None] = '95fcdb8dd287'
+down_revision: Union[str, None] = 'b2c3d4e5f6a7'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -25,6 +25,7 @@ def upgrade() -> None:
     sa.Column('security_id', sa.BigInteger(), nullable=False),
     sa.Column('fund_id', sa.BigInteger(), nullable=False),
     sa.Column('custodian_id', sa.BigInteger(), nullable=False),
+    sa.Column('broker_id', sa.BigInteger(), nullable=True),
     sa.Column('side', sa.String(length=5), nullable=False),
     sa.Column('quantity_start', sa.Numeric(precision=18, scale=6), nullable=True),
     sa.Column('quantity_end', sa.Numeric(precision=18, scale=6), nullable=True),
@@ -40,6 +41,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.CheckConstraint("side IN ('Long', 'Short')", name='holding_side_check'),
+    sa.ForeignKeyConstraint(['broker_id'], ['brokers.id'], ),
     sa.ForeignKeyConstraint(['ccy_id'], ['currencies.id'], ),
     sa.ForeignKeyConstraint(['custodian_id'], ['custodians.id'], ),
     sa.ForeignKeyConstraint(['fund_id'], ['funds.id'], ),
