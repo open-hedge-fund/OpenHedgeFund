@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 
+function getTodayString(): string {
+  const d = new Date();
+  return d.toISOString().split("T")[0];
+}
+
 export default function PortfolioPositionReport() {
-  const [reportDate, setReportDate] = useState("");
+  const [reportDate, setReportDate] = useState(getTodayString);
   const [loading, setLoading] = useState(false);
   const [positions, setPositions] = useState<Record<string, unknown>[]>([]);
   const [summary, setSummary] = useState<{
