@@ -1,0 +1,49 @@
+"""create strategies table
+
+Revision ID: 95fcdb8dd287
+Revises: c3d4e5f6a7b8
+Create Date: 2026-02-24 13:25:04.890032
+"""
+from typing import Sequence, Union
+
+from alembic import op
+import sqlalchemy as sa
+
+
+# revision identifiers, used by Alembic.
+revision: str = '95fcdb8dd287'
+down_revision: Union[str, None] = 'c3d4e5f6a7b8'
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    op.create_table('strategies',
+    sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+    sa.Column('strategy_code', sa.String(length=30), nullable=False),
+    sa.Column('strategy_description', sa.String(length=100), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('tenant_id', sa.UUID(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('tenant_id', 'strategy_code', name='uq_strategies_tenant_code')
+    )
+
+    # Add strategy_id to holdings and positions
+    op.add_column('holdings', sa.Column('strategy_id', sa.BigInteger(), nullable=True))
+    op.create_foreign_key('fk_holdings_strategy_id', 'holdings', 'strategies', ['strategy_id'], ['id'])
+
+    op.add_column('positions', sa.Column('strategy_id', sa.BigInteger(), nullable=True))
+    op.create_foreign_key('fk_positions_strategy_id', 'positions', 'strategies', ['strategy_id'], ['id'])
+
+
+def downgrade() -> None:
+    op.drop_constraint('fk_positions_strategy_id', 'positions', type_='foreignkey')
+    op.drop_column('positions', 'strategy_id')
+
+    op.drop_constraint('fk_holdings_strategy_id', 'holdings', type_='foreignkey')
+    op.drop_column('holdings', 'strategy_id')
+
+    op.drop_table('strategies')
