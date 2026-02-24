@@ -10,6 +10,7 @@ class PositionBase(BaseModel):
     security_id: int
     fund_id: int
     strategy_id: int | None = None
+    ccy_id: int | None = None
     side: str
     quantity: Decimal | None = None
     cost: Decimal | None = None
@@ -28,6 +29,7 @@ class PositionUpdate(BaseModel):
     security_id: int | None = None
     fund_id: int | None = None
     strategy_id: int | None = None
+    ccy_id: int | None = None
     side: str | None = None
     quantity: Decimal | None = None
     cost: Decimal | None = None
