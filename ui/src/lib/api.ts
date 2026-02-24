@@ -288,6 +288,19 @@ export interface CustodianData {
 
 export const custodianApi = createCrudApi<CustodianData>("/custodians");
 
+/* ─── Strategies ─── */
+export interface StrategyData {
+  id: number;
+  strategy_code: string;
+  strategy_description: string;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const strategyApi = createCrudApi<StrategyData>("/strategies");
+
 /* ─── Funds ─── */
 export interface FundData {
   id: number;
@@ -515,6 +528,7 @@ export interface PositionData {
   position_date: string;
   security_id: number;
   fund_id: number;
+  strategy_id: number | null;
   side: string;
   quantity: number | null;
   cost: number | null;
@@ -531,6 +545,7 @@ export interface PositionCreateData {
   position_date: string;
   security_id: number;
   fund_id: number;
+  strategy_id?: number;
   side: string;
   quantity?: number;
   cost?: number;
@@ -544,6 +559,7 @@ export interface PositionUpdateData {
   position_date?: string;
   security_id?: number;
   fund_id?: number;
+  strategy_id?: number;
   side?: string;
   quantity?: number;
   cost?: number;
@@ -572,6 +588,7 @@ export interface HoldingData {
   security_id: number;
   fund_id: number;
   custodian_id: number;
+  strategy_id: number | null;
   side: string;
   quantity: number | null;
   cost: number | null;
@@ -589,6 +606,7 @@ export interface HoldingCreateData {
   security_id: number;
   fund_id: number;
   custodian_id: number;
+  strategy_id?: number;
   side: string;
   quantity?: number;
   cost?: number;
@@ -603,6 +621,7 @@ export interface HoldingUpdateData {
   security_id?: number;
   fund_id?: number;
   custodian_id?: number;
+  strategy_id?: number;
   side?: string;
   quantity?: number;
   cost?: number;

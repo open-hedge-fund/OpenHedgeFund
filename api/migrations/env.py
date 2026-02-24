@@ -9,7 +9,7 @@ from src.database import Base
 from src.models import (  # noqa: F401
     AssetType, Continent, Country, Currency, Custodian,
     File, FileImport, Fund, Job, MarketCategory,
-    SecuritySubType, SecurityType, Tenant, User,
+    SecuritySubType, SecurityType, Strategy, Tenant, User,
 )
 
 import os
