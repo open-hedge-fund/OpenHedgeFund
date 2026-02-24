@@ -193,6 +193,31 @@ export const fileImportApi = {
   },
 };
 
+/* ─── Generic CRUD Factory ─── */
+function createCrudApi<T, TCreate = Partial<T>, TUpdate = Partial<T>>(endpoint: string) {
+  return {
+    getAll: async (): Promise<T[]> => {
+      const response = await api.get(`${endpoint}/`);
+      return response.data;
+    },
+    get: async (id: number): Promise<T> => {
+      const response = await api.get(`${endpoint}/${id}`);
+      return response.data;
+    },
+    create: async (data: TCreate): Promise<T> => {
+      const response = await api.post(`${endpoint}/`, data);
+      return response.data;
+    },
+    update: async (id: number, data: TUpdate): Promise<T> => {
+      const response = await api.patch(`${endpoint}/${id}`, data);
+      return response.data;
+    },
+    delete: async (id: number): Promise<void> => {
+      await api.delete(`${endpoint}/${id}`);
+    },
+  };
+}
+
 /* ─── Asset Types ─── */
 export interface AssetTypeData {
   id: number;
@@ -204,23 +229,7 @@ export interface AssetTypeData {
   updated_at: string | null;
 }
 
-export const assetTypeApi = {
-  getAll: async (): Promise<AssetTypeData[]> => {
-    const response = await api.get("/asset-types/");
-    return response.data;
-  },
-  create: async (data: Partial<AssetTypeData>): Promise<AssetTypeData> => {
-    const response = await api.post("/asset-types/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<AssetTypeData>): Promise<AssetTypeData> => {
-    const response = await api.patch(`/asset-types/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/asset-types/${id}`);
-  },
-};
+export const assetTypeApi = createCrudApi<AssetTypeData>("/asset-types");
 
 /* ─── Continents ─── */
 export interface ContinentData {
@@ -233,23 +242,7 @@ export interface ContinentData {
   updated_at: string | null;
 }
 
-export const continentApi = {
-  getAll: async (): Promise<ContinentData[]> => {
-    const response = await api.get("/continents/");
-    return response.data;
-  },
-  create: async (data: Partial<ContinentData>): Promise<ContinentData> => {
-    const response = await api.post("/continents/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<ContinentData>): Promise<ContinentData> => {
-    const response = await api.patch(`/continents/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/continents/${id}`);
-  },
-};
+export const continentApi = createCrudApi<ContinentData>("/continents");
 
 /* ─── Countries ─── */
 export interface CountryData {
@@ -265,23 +258,7 @@ export interface CountryData {
   updated_at: string | null;
 }
 
-export const countryApi = {
-  getAll: async (): Promise<CountryData[]> => {
-    const response = await api.get("/countries/");
-    return response.data;
-  },
-  create: async (data: Partial<CountryData>): Promise<CountryData> => {
-    const response = await api.post("/countries/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<CountryData>): Promise<CountryData> => {
-    const response = await api.patch(`/countries/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/countries/${id}`);
-  },
-};
+export const countryApi = createCrudApi<CountryData>("/countries");
 
 /* ─── Currencies ─── */
 export interface CurrencyData {
@@ -294,23 +271,7 @@ export interface CurrencyData {
   updated_at: string | null;
 }
 
-export const currencyApi = {
-  getAll: async (): Promise<CurrencyData[]> => {
-    const response = await api.get("/currencies/");
-    return response.data;
-  },
-  create: async (data: Partial<CurrencyData>): Promise<CurrencyData> => {
-    const response = await api.post("/currencies/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<CurrencyData>): Promise<CurrencyData> => {
-    const response = await api.patch(`/currencies/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/currencies/${id}`);
-  },
-};
+export const currencyApi = createCrudApi<CurrencyData>("/currencies");
 
 /* ─── Custodians ─── */
 export interface CustodianData {
@@ -325,23 +286,7 @@ export interface CustodianData {
   updated_at: string | null;
 }
 
-export const custodianApi = {
-  getAll: async (): Promise<CustodianData[]> => {
-    const response = await api.get("/custodians/");
-    return response.data;
-  },
-  create: async (data: Partial<CustodianData>): Promise<CustodianData> => {
-    const response = await api.post("/custodians/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<CustodianData>): Promise<CustodianData> => {
-    const response = await api.patch(`/custodians/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/custodians/${id}`);
-  },
-};
+export const custodianApi = createCrudApi<CustodianData>("/custodians");
 
 /* ─── Funds ─── */
 export interface FundData {
@@ -356,23 +301,7 @@ export interface FundData {
   updated_at: string | null;
 }
 
-export const fundApi = {
-  getAll: async (): Promise<FundData[]> => {
-    const response = await api.get("/funds/");
-    return response.data;
-  },
-  create: async (data: Partial<FundData>): Promise<FundData> => {
-    const response = await api.post("/funds/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<FundData>): Promise<FundData> => {
-    const response = await api.patch(`/funds/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/funds/${id}`);
-  },
-};
+export const fundApi = createCrudApi<FundData>("/funds");
 
 /* ─── Market Categories ─── */
 export interface MarketCategoryData {
@@ -385,23 +314,7 @@ export interface MarketCategoryData {
   updated_at: string | null;
 }
 
-export const marketCategoryApi = {
-  getAll: async (): Promise<MarketCategoryData[]> => {
-    const response = await api.get("/market-categories/");
-    return response.data;
-  },
-  create: async (data: Partial<MarketCategoryData>): Promise<MarketCategoryData> => {
-    const response = await api.post("/market-categories/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<MarketCategoryData>): Promise<MarketCategoryData> => {
-    const response = await api.patch(`/market-categories/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/market-categories/${id}`);
-  },
-};
+export const marketCategoryApi = createCrudApi<MarketCategoryData>("/market-categories");
 
 /* ─── Security Types ─── */
 export interface SecurityTypeData {
@@ -415,23 +328,7 @@ export interface SecurityTypeData {
   updated_at: string | null;
 }
 
-export const securityTypeApi = {
-  getAll: async (): Promise<SecurityTypeData[]> => {
-    const response = await api.get("/security-types/");
-    return response.data;
-  },
-  create: async (data: Partial<SecurityTypeData>): Promise<SecurityTypeData> => {
-    const response = await api.post("/security-types/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<SecurityTypeData>): Promise<SecurityTypeData> => {
-    const response = await api.patch(`/security-types/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/security-types/${id}`);
-  },
-};
+export const securityTypeApi = createCrudApi<SecurityTypeData>("/security-types");
 
 /* ─── Security SubTypes ─── */
 export interface SecuritySubTypeData {
@@ -445,23 +342,7 @@ export interface SecuritySubTypeData {
   updated_at: string | null;
 }
 
-export const securitySubTypeApi = {
-  getAll: async (): Promise<SecuritySubTypeData[]> => {
-    const response = await api.get("/security-subtypes/");
-    return response.data;
-  },
-  create: async (data: Partial<SecuritySubTypeData>): Promise<SecuritySubTypeData> => {
-    const response = await api.post("/security-subtypes/", data);
-    return response.data;
-  },
-  update: async (id: number, data: Partial<SecuritySubTypeData>): Promise<SecuritySubTypeData> => {
-    const response = await api.patch(`/security-subtypes/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/security-subtypes/${id}`);
-  },
-};
+export const securitySubTypeApi = createCrudApi<SecuritySubTypeData>("/security-subtypes");
 
 /* ─── Securities ─── */
 export interface SecurityData {
@@ -535,24 +416,10 @@ export interface SecurityUpdateData {
 }
 
 export const securityApi = {
+  ...createCrudApi<SecurityData, SecurityCreateData, SecurityUpdateData>("/securities"),
   getAll: async (skip = 0, limit = 500): Promise<SecurityData[]> => {
     const response = await api.get("/securities/", { params: { skip, limit } });
     return response.data;
-  },
-  create: async (data: SecurityCreateData): Promise<SecurityData> => {
-    const response = await api.post("/securities/", data);
-    return response.data;
-  },
-  get: async (id: number): Promise<SecurityData> => {
-    const response = await api.get(`/securities/${id}`);
-    return response.data;
-  },
-  update: async (id: number, data: SecurityUpdateData): Promise<SecurityData> => {
-    const response = await api.patch(`/securities/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/securities/${id}`);
   },
 };
 
@@ -592,24 +459,10 @@ export interface PriceUpdateData {
 }
 
 export const priceApi = {
+  ...createCrudApi<PriceData, PriceCreateData, PriceUpdateData>("/prices"),
   getAll: async (params?: { price_date?: string; security_id?: number; skip?: number; limit?: number }): Promise<PriceData[]> => {
     const response = await api.get("/prices/", { params });
     return response.data;
-  },
-  create: async (data: PriceCreateData): Promise<PriceData> => {
-    const response = await api.post("/prices/", data);
-    return response.data;
-  },
-  get: async (id: number): Promise<PriceData> => {
-    const response = await api.get(`/prices/${id}`);
-    return response.data;
-  },
-  update: async (id: number, data: PriceUpdateData): Promise<PriceData> => {
-    const response = await api.patch(`/prices/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/prices/${id}`);
   },
 };
 
@@ -649,24 +502,10 @@ export interface FxRateUpdateData {
 }
 
 export const fxRateApi = {
+  ...createCrudApi<FxRateData, FxRateCreateData, FxRateUpdateData>("/fx-rates"),
   getAll: async (params?: { rate_date?: string; ref_currency_id?: number; currency_id?: number; skip?: number; limit?: number }): Promise<FxRateData[]> => {
     const response = await api.get("/fx-rates/", { params });
     return response.data;
-  },
-  create: async (data: FxRateCreateData): Promise<FxRateData> => {
-    const response = await api.post("/fx-rates/", data);
-    return response.data;
-  },
-  get: async (id: number): Promise<FxRateData> => {
-    const response = await api.get(`/fx-rates/${id}`);
-    return response.data;
-  },
-  update: async (id: number, data: FxRateUpdateData): Promise<FxRateData> => {
-    const response = await api.patch(`/fx-rates/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/fx-rates/${id}`);
   },
 };
 
@@ -715,28 +554,14 @@ export interface PositionUpdateData {
 }
 
 export const positionApi = {
+  ...createCrudApi<PositionData, PositionCreateData, PositionUpdateData>("/positions"),
   getAll: async (params?: { position_date?: string; security_id?: number; fund_id?: number; skip?: number; limit?: number }): Promise<PositionData[]> => {
     const response = await api.get("/positions/", { params });
-    return response.data;
-  },
-  create: async (data: PositionCreateData): Promise<PositionData> => {
-    const response = await api.post("/positions/", data);
     return response.data;
   },
   createBulk: async (data: PositionCreateData[]): Promise<PositionData[]> => {
     const response = await api.post("/positions/bulk", data);
     return response.data;
-  },
-  get: async (id: number): Promise<PositionData> => {
-    const response = await api.get(`/positions/${id}`);
-    return response.data;
-  },
-  update: async (id: number, data: PositionUpdateData): Promise<PositionData> => {
-    const response = await api.patch(`/positions/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/positions/${id}`);
   },
 };
 
@@ -788,28 +613,14 @@ export interface HoldingUpdateData {
 }
 
 export const holdingApi = {
+  ...createCrudApi<HoldingData, HoldingCreateData, HoldingUpdateData>("/holdings"),
   getAll: async (params?: { holding_date?: string; security_id?: number; fund_id?: number; custodian_id?: number; skip?: number; limit?: number }): Promise<HoldingData[]> => {
     const response = await api.get("/holdings/", { params });
-    return response.data;
-  },
-  create: async (data: HoldingCreateData): Promise<HoldingData> => {
-    const response = await api.post("/holdings/", data);
     return response.data;
   },
   createBulk: async (data: HoldingCreateData[]): Promise<HoldingData[]> => {
     const response = await api.post("/holdings/bulk", data);
     return response.data;
-  },
-  get: async (id: number): Promise<HoldingData> => {
-    const response = await api.get(`/holdings/${id}`);
-    return response.data;
-  },
-  update: async (id: number, data: HoldingUpdateData): Promise<HoldingData> => {
-    const response = await api.patch(`/holdings/${id}`, data);
-    return response.data;
-  },
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`/holdings/${id}`);
   },
 };
 
