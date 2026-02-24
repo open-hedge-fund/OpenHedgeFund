@@ -1,12 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/DashboardLayout";
-import { fileApi, FileData, FileCreateData, FileUpdateData } from "@/lib/api";
+import {
+  fileApi,
+  FileData,
+  FileCreateData,
+  FileUpdateData,
+  columnDefinitionApi,
+  ColumnDefinitionData,
+  columnMappingApi,
+  AvailableMappingsResponse,
+} from "@/lib/api";
 import { FileIcon } from "@/components/icons/SidebarIcons";
 
-const FILE_NAMES = ["Pricing", "Holdings"];
 const FILE_TYPES = ["CSV", "PIPE"];
 
 function getFileTypeBadgeClass(type: string): string {
@@ -87,6 +95,203 @@ function PlusIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+/* ─── Table display names ─── */
+const TABLE_DISPLAY_NAMES: Record<string, string> = {
+  securities: "Security",
+  asset_types: "Asset Type",
+  continents: "Continent",
+  custodians: "Custodian",
+  countries: "Country",
+  currencies: "Currency",
+};
+
+function CloseIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+/* ─── Column Mappings Panel ─── */
+function ColumnMappingsPanel({
+  file,
+  onClose,
+}: {
+  file: FileData;
+  onClose: () => void;
+}) {
+  const [mappings, setMappings] = useState<ColumnDefinitionData[]>([]);
+  const [availableMappings, setAvailableMappings] = useState<AvailableMappingsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [newColumnName, setNewColumnName] = useState("");
+  const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
+  const [isAdding, setIsAdding] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, [file.id]);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [defs, avail] = await Promise.all([
+        columnDefinitionApi.getByFile(file.id),
+        columnMappingApi.getAvailableMappings(),
+      ]);
+      setMappings(defs);
+      setAvailableMappings(avail);
+    } catch {
+      // silently handle
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newColumnName.trim() || !newMapping) return;
+    setIsAdding(true);
+    const [tableMapping, columnMapping] = newMapping.split("|");
+    try {
+      const created = await columnDefinitionApi.create({
+        file_id: file.id,
+        column_name: newColumnName.trim(),
+        table_mapping: tableMapping,
+        column_mapping: columnMapping,
+      });
+      setMappings((prev) => [...prev, created]);
+      setNewColumnName("");
+      setNewMapping("");
+    } catch {
+      alert("Failed to add column mapping");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await columnDefinitionApi.delete(id);
+      setMappings((prev) => prev.filter((m) => m.id !== id));
+    } catch {
+      alert("Failed to delete column mapping");
+    }
+  };
+
+  return (
+    <div className="column-mappings-panel">
+      <div className="column-mappings-header">
+        <h4>Column Mappings for &ldquo;{file.name}&rdquo;</h4>
+        <button
+          className="column-mappings-close"
+          onClick={onClose}
+          title="Close panel"
+        >
+          <CloseIcon size={18} />
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="column-mappings-loading">Loading mappings...</div>
+      ) : (
+        <>
+          <table className="column-mappings-table">
+            <thead>
+              <tr>
+                <th>Column Name</th>
+                <th>Table</th>
+                <th>Mapping</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mappings.map((m) => (
+                <tr key={m.id}>
+                  <td>{m.column_name}</td>
+                  <td>
+                    <span className="mapping-badge">{TABLE_DISPLAY_NAMES[m.table_mapping] || m.table_mapping}</span>
+                  </td>
+                  <td>
+                    <span className="mapping-badge">{m.column_mapping}</span>
+                  </td>
+                  <td>{formatDate(m.created_at)}</td>
+                  <td>
+                    <button
+                      className="file-action-btn file-action-delete"
+                      onClick={() => handleDelete(m.id)}
+                      title="Delete mapping"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {mappings.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="column-mappings-empty">
+                    No column mappings defined yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="column-mappings-add-row">
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Column name (e.g. Quantity)"
+              value={newColumnName}
+              onChange={(e) => setNewColumnName(e.target.value)}
+            />
+            <select
+              className="form-select"
+              value={newMapping}
+              onChange={(e) => setNewMapping(e.target.value)}
+            >
+              <option value="">Select mapping...</option>
+              {availableMappings &&
+                Object.entries(availableMappings.grouped_mappings).map(
+                  ([table, opts]) => (
+                    <optgroup
+                      key={table}
+                      label={TABLE_DISPLAY_NAMES[table] || table}
+                    >
+                      {opts.map((opt) => (
+                        <option key={opt.key} value={`${table}|${opt.key}`}>
+                          {opt.key}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ),
+                )}
+            </select>
+            <button
+              className="btn btn-primary btn-add-mapping"
+              onClick={handleAdd}
+              disabled={isAdding || !newColumnName.trim() || !newMapping}
+              title="Add mapping"
+            >
+              <PlusIcon size={16} />
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ─── Create Modal ─── */
 function CreateFileModal({
   isOpen,
@@ -130,21 +335,16 @@ function CreateFileModal({
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label className="form-label">File Name</label>
-            <select
-              className="form-select"
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. SOD (Start of Day)"
               value={formData.name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               required
-            >
-              <option value="">Select file name</option>
-              {FILE_NAMES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="form-group">
             <label className="form-label">File Type</label>
@@ -244,21 +444,16 @@ function EditFileModal({
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label className="form-label">File Name</label>
-            <select
-              className="form-select"
+            <input
+              type="text"
+              className="form-input"
+              placeholder="e.g. SOD (Start of Day)"
               value={formData.name}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               required
-            >
-              <option value="">Select file name</option>
-              {FILE_NAMES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div className="form-group">
             <label className="form-label">File Type</label>
@@ -313,6 +508,7 @@ function FilesContent() {
   const [selectedFile, setSelectedFile] = useState<FileData | undefined>(
     undefined,
   );
+  const [expandedFileId, setExpandedFileId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -439,38 +635,61 @@ function FilesContent() {
           </thead>
           <tbody>
             {filteredFiles.map((file) => (
-              <tr key={file.id}>
-                <td>
-                  <div className="file-name-cell">
-                    <FileIcon size={18} />
-                    <span>{file.name}</span>
-                  </div>
-                </td>
-                <td>
-                  <span className={getFileTypeBadgeClass(file.type)}>
-                    {file.type}
-                  </span>
-                </td>
-                <td>{formatDate(file.created_at)}</td>
-                <td>
-                  <div className="file-actions">
-                    <button
-                      className="file-action-btn file-action-edit"
-                      onClick={() => handleEditFile(file)}
-                      title="Edit file"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      className="file-action-btn file-action-delete"
-                      onClick={() => handleDeleteFile(file.id)}
-                      title="Delete file"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              <React.Fragment key={file.id}>
+                <tr
+                  className={`file-row-clickable${expandedFileId === file.id ? " file-row-expanded" : ""}`}
+                  onClick={() =>
+                    setExpandedFileId(expandedFileId === file.id ? null : file.id)
+                  }
+                >
+                  <td>
+                    <div className="file-name-cell">
+                      <FileIcon size={18} />
+                      <span>{file.name}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={getFileTypeBadgeClass(file.type)}>
+                      {file.type}
+                    </span>
+                  </td>
+                  <td>{formatDate(file.created_at)}</td>
+                  <td>
+                    <div className="file-actions">
+                      <button
+                        className="file-action-btn file-action-edit"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditFile(file);
+                        }}
+                        title="Edit file"
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        className="file-action-btn file-action-delete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteFile(file.id);
+                        }}
+                        title="Delete file"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                {expandedFileId === file.id && (
+                  <tr className="file-mappings-row">
+                    <td colSpan={4}>
+                      <ColumnMappingsPanel
+                        file={file}
+                        onClose={() => setExpandedFileId(null)}
+                      />
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>

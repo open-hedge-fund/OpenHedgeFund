@@ -1,0 +1,51 @@
+import uuid
+from datetime import date, datetime
+from decimal import Decimal
+
+from sqlalchemy import BigInteger, CheckConstraint, Date, DateTime, ForeignKey, Numeric, String, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from src.database import Base
+
+
+class Position(Base):
+    __tablename__ = "positions"
+    __table_args__ = (
+        CheckConstraint("side IN ('Long', 'Short')", name="position_side_check"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+
+    position_date: Mapped[date] = mapped_column(Date, nullable=False)
+    security_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("securities.id"), nullable=False
+    )
+    fund_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("funds.id"), nullable=False
+    )
+    side: Mapped[str] = mapped_column(String(5), nullable=False)  # 'Long' or 'Short'
+
+    # Numeric fields
+    quantity: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
+    price_local: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
+    price_base: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
+    outstanding_shares: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=0), nullable=True)
+    market_cap: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
+
+    # Metadata
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now()
+    )
+
+    # Relationships
+    security: Mapped["Security"] = relationship()  # noqa: F821
+    fund: Mapped["Fund"] = relationship()  # noqa: F821
+    tenant: Mapped["Tenant"] = relationship()  # noqa: F821

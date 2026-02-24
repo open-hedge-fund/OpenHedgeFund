@@ -25,3 +25,4 @@ class Tenant(Base):
 
     users: Mapped[list["User"]] = relationship(back_populates="tenant")  # noqa: F821
     files: Mapped[list["File"]] = relationship(back_populates="tenant")  # noqa: F821
+    column_definitions: Mapped[list["ColumnDefinition"]] = relationship(back_populates="tenant")  # noqa: F821

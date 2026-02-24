@@ -73,6 +73,81 @@ export const fileApi = {
   },
 };
 
+/* ─── Column Mappings (available mapping options) ─── */
+export interface ColumnMappingOption {
+  key: string;
+  label: string;
+  table: string;
+  data_type: string;
+  description: string;
+  db_field: string;
+  csv_column: string;
+}
+
+export interface AvailableMappingsResponse {
+  mappings: ColumnMappingOption[];
+  grouped_mappings: Record<string, ColumnMappingOption[]>;
+  summary: Record<string, string[]>;
+}
+
+export const columnMappingApi = {
+  getAvailableMappings: async (): Promise<AvailableMappingsResponse> => {
+    const response = await api.get("/column-mappings/available-mappings");
+    return response.data;
+  },
+  getMappingKeys: async (): Promise<string[]> => {
+    const response = await api.get("/column-mappings/mapping-keys");
+    return response.data;
+  },
+  validateMapping: async (key: string): Promise<{ valid: boolean; mapping?: ColumnMappingOption; error?: string }> => {
+    const response = await api.get(`/column-mappings/validate-mapping/${key}`);
+    return response.data;
+  },
+};
+
+/* ─── Column Definitions ─── */
+export interface ColumnDefinitionData {
+  id: number;
+  file_id: number;
+  column_name: string;
+  table_mapping: string;
+  column_mapping: string;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface ColumnDefinitionCreateData {
+  file_id: number;
+  column_name: string;
+  table_mapping: string;
+  column_mapping: string;
+}
+
+export interface ColumnDefinitionUpdateData {
+  column_name?: string;
+  table_mapping?: string;
+  column_mapping?: string;
+}
+
+export const columnDefinitionApi = {
+  getByFile: async (fileId: number): Promise<ColumnDefinitionData[]> => {
+    const response = await api.get("/column-definitions/", { params: { file_id: fileId } });
+    return response.data;
+  },
+  create: async (data: ColumnDefinitionCreateData): Promise<ColumnDefinitionData> => {
+    const response = await api.post("/column-definitions/", data);
+    return response.data;
+  },
+  update: async (id: number, data: ColumnDefinitionUpdateData): Promise<ColumnDefinitionData> => {
+    const response = await api.patch(`/column-definitions/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/column-definitions/${id}`);
+  },
+};
+
 export interface FileImportData {
   id: string;
   file_id: number | null;
@@ -86,6 +161,9 @@ export interface FileImportData {
   completed_at: string | null;
   duration_seconds: number | null;
   error_message: string | null;
+  error_details: Record<string, unknown> | null;
+  imported_by_user_id: string | null;
+  imported_by_name: string | null;
   created_at: string;
 }
 
@@ -97,11 +175,15 @@ export const fileImportApi = {
   uploadFile: async (
     file: File,
     fileId?: number,
+    fileType?: string,
   ): Promise<FileImportData> => {
     const formData = new FormData();
     formData.append("file", file);
-    const params = fileId ? `?file_id=${fileId}` : "";
-    const response = await api.post(`/file-imports/upload${params}`, formData, {
+    const searchParams = new URLSearchParams();
+    if (fileId) searchParams.set("file_id", String(fileId));
+    if (fileType) searchParams.set("file_type", fileType);
+    const qs = searchParams.toString();
+    const response = await api.post(`/file-imports/upload${qs ? `?${qs}` : ""}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
@@ -468,6 +550,263 @@ export const securityApi = {
   },
   delete: async (id: number): Promise<void> => {
     await api.delete(`/securities/${id}`);
+  },
+};
+
+/* ─── Prices ─── */
+export interface PriceData {
+  id: number;
+  price_date: string;
+  security_id: number;
+  currency_id: number;
+  last: number;
+  next_day_open: number | null;
+  last_modified_by: string | null;
+  last_modified_on: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface PriceCreateData {
+  price_date: string;
+  security_id: number;
+  currency_id: number;
+  last: number;
+  next_day_open?: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export interface PriceUpdateData {
+  price_date?: string;
+  security_id?: number;
+  currency_id?: number;
+  last?: number;
+  next_day_open?: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export const priceApi = {
+  getAll: async (params?: { price_date?: string; security_id?: number; skip?: number; limit?: number }): Promise<PriceData[]> => {
+    const response = await api.get("/prices/", { params });
+    return response.data;
+  },
+  create: async (data: PriceCreateData): Promise<PriceData> => {
+    const response = await api.post("/prices/", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<PriceData> => {
+    const response = await api.get(`/prices/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: PriceUpdateData): Promise<PriceData> => {
+    const response = await api.patch(`/prices/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/prices/${id}`);
+  },
+};
+
+/* ─── FX Rates ─── */
+export interface FxRateData {
+  id: number;
+  rate_date: string;
+  ref_currency_id: number;
+  currency_id: number;
+  direct: number;
+  indirect: number;
+  last_modified_by: string | null;
+  last_modified_on: string | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface FxRateCreateData {
+  rate_date: string;
+  ref_currency_id: number;
+  currency_id: number;
+  direct: number;
+  indirect: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export interface FxRateUpdateData {
+  rate_date?: string;
+  ref_currency_id?: number;
+  currency_id?: number;
+  direct?: number;
+  indirect?: number;
+  last_modified_by?: string;
+  last_modified_on?: string;
+}
+
+export const fxRateApi = {
+  getAll: async (params?: { rate_date?: string; ref_currency_id?: number; currency_id?: number; skip?: number; limit?: number }): Promise<FxRateData[]> => {
+    const response = await api.get("/fx-rates/", { params });
+    return response.data;
+  },
+  create: async (data: FxRateCreateData): Promise<FxRateData> => {
+    const response = await api.post("/fx-rates/", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<FxRateData> => {
+    const response = await api.get(`/fx-rates/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: FxRateUpdateData): Promise<FxRateData> => {
+    const response = await api.patch(`/fx-rates/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/fx-rates/${id}`);
+  },
+};
+
+/* ─── Positions ─── */
+export interface PositionData {
+  id: number;
+  position_date: string;
+  security_id: number;
+  fund_id: number;
+  side: string;
+  quantity: number | null;
+  cost: number | null;
+  price_local: number | null;
+  price_base: number | null;
+  outstanding_shares: number | null;
+  market_cap: number | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface PositionCreateData {
+  position_date: string;
+  security_id: number;
+  fund_id: number;
+  side: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export interface PositionUpdateData {
+  position_date?: string;
+  security_id?: number;
+  fund_id?: number;
+  side?: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export const positionApi = {
+  getAll: async (params?: { position_date?: string; security_id?: number; fund_id?: number; skip?: number; limit?: number }): Promise<PositionData[]> => {
+    const response = await api.get("/positions/", { params });
+    return response.data;
+  },
+  create: async (data: PositionCreateData): Promise<PositionData> => {
+    const response = await api.post("/positions/", data);
+    return response.data;
+  },
+  createBulk: async (data: PositionCreateData[]): Promise<PositionData[]> => {
+    const response = await api.post("/positions/bulk", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<PositionData> => {
+    const response = await api.get(`/positions/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: PositionUpdateData): Promise<PositionData> => {
+    const response = await api.patch(`/positions/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/positions/${id}`);
+  },
+};
+
+/* ─── Holdings ─── */
+export interface HoldingData {
+  id: number;
+  holding_date: string;
+  security_id: number;
+  fund_id: number;
+  custodian_id: number;
+  side: string;
+  quantity: number | null;
+  cost: number | null;
+  price_local: number | null;
+  price_base: number | null;
+  outstanding_shares: number | null;
+  market_cap: number | null;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface HoldingCreateData {
+  holding_date: string;
+  security_id: number;
+  fund_id: number;
+  custodian_id: number;
+  side: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export interface HoldingUpdateData {
+  holding_date?: string;
+  security_id?: number;
+  fund_id?: number;
+  custodian_id?: number;
+  side?: string;
+  quantity?: number;
+  cost?: number;
+  price_local?: number;
+  price_base?: number;
+  outstanding_shares?: number;
+  market_cap?: number;
+}
+
+export const holdingApi = {
+  getAll: async (params?: { holding_date?: string; security_id?: number; fund_id?: number; custodian_id?: number; skip?: number; limit?: number }): Promise<HoldingData[]> => {
+    const response = await api.get("/holdings/", { params });
+    return response.data;
+  },
+  create: async (data: HoldingCreateData): Promise<HoldingData> => {
+    const response = await api.post("/holdings/", data);
+    return response.data;
+  },
+  createBulk: async (data: HoldingCreateData[]): Promise<HoldingData[]> => {
+    const response = await api.post("/holdings/bulk", data);
+    return response.data;
+  },
+  get: async (id: number): Promise<HoldingData> => {
+    const response = await api.get(`/holdings/${id}`);
+    return response.data;
+  },
+  update: async (id: number, data: HoldingUpdateData): Promise<HoldingData> => {
+    const response = await api.patch(`/holdings/${id}`, data);
+    return response.data;
+  },
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/holdings/${id}`);
   },
 };
 

@@ -37,6 +37,7 @@ class FileImportSchema(FileImportBase):
     error_message: str | None = None
     error_details: dict | None = None
     imported_by_user_id: uuid.UUID | None = None
+    imported_by_name: str | None = None
     tenant_id: uuid.UUID
     created_at: datetime
     updated_at: datetime | None = None
