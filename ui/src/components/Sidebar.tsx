@@ -180,6 +180,7 @@ const reportItems: MenuItem[] = [
   { label: "Currency Exposure", icon: ReportIcon, href: "/currency-exposure" },
   { label: "Sector Exposure", icon: ReportIcon, href: "/sector-exposure" },
   { label: "Asset Type Exposure", icon: ReportIcon, href: "/asset-type-exposure" },
+  { label: "Market Category Exposure", icon: ReportIcon, href: "/market-category-exposure" },
 ];
 
 const settingsItems: MenuItem[] = [
