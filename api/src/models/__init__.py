@@ -12,6 +12,7 @@ from src.models.holding import Holding
 from src.models.fx_rate import FxRate
 from src.models.job import Job
 from src.models.market_category import MarketCategory
+from src.models.portfolio import Portfolio
 from src.models.position import Position
 from src.models.price import Price
 from src.models.sector import Sector
@@ -37,6 +38,7 @@ __all__ = [
     "FxRate",
     "Job",
     "MarketCategory",
+    "Portfolio",
     "Position",
     "Price",
     "Sector",
