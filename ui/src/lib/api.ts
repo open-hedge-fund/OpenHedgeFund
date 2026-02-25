@@ -357,6 +357,19 @@ export interface SecuritySubTypeData {
 
 export const securitySubTypeApi = createCrudApi<SecuritySubTypeData>("/security-subtypes");
 
+/* ─── Sectors ─── */
+export interface SectorData {
+  id: number;
+  sector_code: string;
+  sector_desc: string;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const sectorApi = createCrudApi<SectorData>("/sectors");
+
 /* ─── Securities ─── */
 export interface SecurityData {
   id: number;
@@ -378,6 +391,7 @@ export interface SecurityData {
   country_id: number | null;
   security_subtype_id: number | null;
   asset_type_id: number | null;
+  sector_id: number | null;
   market_category_id: number | null;
   tenant_id: string;
   created_at: string;
@@ -403,6 +417,7 @@ export interface SecurityCreateData {
   country_id?: number;
   security_subtype_id?: number;
   asset_type_id?: number;
+  sector_id?: number;
   market_category_id?: number;
 }
 
@@ -425,6 +440,7 @@ export interface SecurityUpdateData {
   country_id?: number;
   security_subtype_id?: number;
   asset_type_id?: number;
+  sector_id?: number;
   market_category_id?: number;
 }
 
@@ -766,6 +782,22 @@ export interface CountryExposureData {
 export const countryExposureApi = {
   get: async (params: { position_date: string; fund_id?: number }): Promise<CountryExposureData[]> => {
     const response = await api.get("/reports/country-exposure", { params });
+    return response.data;
+  },
+};
+
+/* ─── Sector Exposure Report ─── */
+export interface SectorExposureData {
+  sector: string;
+  long_exposure: number;
+  short_exposure: number;
+  gross_exposure: number;
+  net_exposure: number;
+}
+
+export const sectorExposureApi = {
+  get: async (params: { position_date: string; fund_id?: number }): Promise<SectorExposureData[]> => {
+    const response = await api.get("/reports/sector-exposure", { params });
     return response.data;
   },
 };

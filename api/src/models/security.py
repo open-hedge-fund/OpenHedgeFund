@@ -55,6 +55,9 @@ class Security(Base):
     asset_type_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("asset_types.id"), nullable=True
     )
+    sector_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("sectors.id"), nullable=True
+    )
     market_category_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("market_categories.id"), nullable=True
     )
@@ -78,4 +81,5 @@ class Security(Base):
     cntry_of_domicile: Mapped["Country"] = relationship(foreign_keys=[cntry_of_domicile_id])  # noqa: F821
     security_subtype: Mapped["SecuritySubType"] = relationship()  # noqa: F821
     asset_type: Mapped["AssetType"] = relationship()  # noqa: F821
+    sector: Mapped["Sector"] = relationship()  # noqa: F821
     market_category: Mapped["MarketCategory"] = relationship()  # noqa: F821

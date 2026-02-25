@@ -24,6 +24,7 @@ class SecurityBase(BaseModel):
     country_id: int | None = None
     security_subtype_id: int | None = None
     asset_type_id: int | None = None
+    sector_id: int | None = None
     market_category_id: int | None = None
 
 
@@ -50,6 +51,7 @@ class SecurityUpdate(BaseModel):
     country_id: int | None = None
     security_subtype_id: int | None = None
     asset_type_id: int | None = None
+    sector_id: int | None = None
     market_category_id: int | None = None
 
 
