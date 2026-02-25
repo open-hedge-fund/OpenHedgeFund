@@ -8,8 +8,8 @@ from pydantic import BaseModel
 class HoldingBase(BaseModel):
     holding_date: date
     security_id: int
-    fund_id: int
-    custodian_id: int
+    fund_id: int | None = None
+    custodian_id: int | None = None
     broker_id: int | None = None
     strategy_id: int | None = None
     ccy_id: int | None = None

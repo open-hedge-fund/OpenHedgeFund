@@ -1,6 +1,6 @@
 """Aggregates holdings into positions for a given date and tenant.
 
-Uses SQL-level aggregation to avoid Decimal→float precision loss
+Uses SQL-level aggregation to avoid Decimal->float precision loss
 and keep all data processing inside PostgreSQL.
 """
 
@@ -65,7 +65,7 @@ def build_and_insert_positions(
     if deleted:
         logger.info("Deleted %d existing positions for %s", deleted, holding_date)
 
-    # Aggregate holdings → positions in a single INSERT...SELECT
+    # Aggregate holdings -> positions in a single INSERT...SELECT
     result = session.execute(
         AGGREGATE_SQL,
         {"holding_date": holding_date, "tenant_id": tenant_id},

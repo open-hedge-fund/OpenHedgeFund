@@ -84,6 +84,27 @@ function CurrencyIcon({ size = 22 }: { size?: number }) {
   );
 }
 
+function HoldingsIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3h18v18H3z" />
+      <path d="M3 9h18" />
+      <path d="M3 15h18" />
+      <path d="M9 3v18" />
+    </svg>
+  );
+}
+
+function PositionsIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 20V10" />
+      <path d="M12 20V4" />
+      <path d="M6 20v-6" />
+    </svg>
+  );
+}
+
 function FxRateIcon({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -149,6 +170,8 @@ const menuItems: MenuItem[] = [
   { label: "Portfolio View", icon: DashboardIcon, href: "/portfolio-view" },
   { label: "Security Master", icon: SecurityMasterIcon, href: "/security-master" },
   { label: "FX Rates", icon: FxRateIcon, href: "/fx-rates" },
+  { label: "Holdings", icon: HoldingsIcon, href: "/holdings" },
+  { label: "Positions", icon: PositionsIcon, href: "/positions" },
   { label: "Import Data", icon: ImportIcon, href: "/import-data" },
 ];
 
