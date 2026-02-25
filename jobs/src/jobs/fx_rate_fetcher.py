@@ -7,8 +7,6 @@ from decimal import Decimal
 import httpx
 from sqlalchemy import text
 
-from src.database import get_session
-
 logger = logging.getLogger(__name__)
 
 PRIMARY_URL = "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json"
@@ -137,8 +135,11 @@ def _bulk_upsert(
     return tenant_counts
 
 
-def fetch_and_upsert() -> dict:
+def fetch_and_upsert(session) -> dict:
     """Fetch latest USD rates and upsert into fx_rates for all tenants.
+
+    Args:
+        session: SQLAlchemy session to use for all database operations.
 
     Returns:
         dict with keys: date, tenants (list of per-tenant summaries)
@@ -147,52 +148,42 @@ def fetch_and_upsert() -> dict:
     rate_date = data["date"]
     rates: dict[str, float] = data["usd"]
 
-    session = get_session()
-    try:
-        # Build currency code -> id lookup
-        rows = session.execute(text("SELECT id, LOWER(ccy) AS ccy FROM currencies")).fetchall()
-        ccy_lookup: dict[str, int] = {row.ccy: row.id for row in rows}
+    # Build currency code -> id lookup
+    rows = session.execute(text("SELECT id, LOWER(ccy) AS ccy FROM currencies")).fetchall()
+    ccy_lookup: dict[str, int] = {row.ccy: row.id for row in rows}
 
-        # Find USD currency id as ref_currency_id for fx_rates table
-        usd_id = ccy_lookup.get("usd")
-        if not usd_id:
-            raise RuntimeError("USD currency not found in currencies table")
+    # Find USD currency id as ref_currency_id for fx_rates table
+    usd_id = ccy_lookup.get("usd")
+    if not usd_id:
+        raise RuntimeError("USD currency not found in currencies table")
 
-        # Fetch all tenant IDs
-        tenant_rows = session.execute(text("SELECT id FROM tenants")).fetchall()
-        if not tenant_rows:
-            raise RuntimeError("No tenants found in tenants table")
+    # Fetch all tenant IDs
+    tenant_rows = session.execute(text("SELECT id FROM tenants")).fetchall()
+    if not tenant_rows:
+        raise RuntimeError("No tenants found in tenants table")
 
-        # Prepare rate rows (filter by known currencies, compute direct/indirect)
-        rate_rows, skipped = _prepare_rate_rows(rates, ccy_lookup, usd_id)
+    # Prepare rate rows (filter by known currencies, compute direct/indirect)
+    rate_rows, skipped = _prepare_rate_rows(rates, ccy_lookup, usd_id)
 
-        if rate_rows:
-            tenant_counts = _bulk_upsert(session, rate_date, usd_id, rate_rows)
-        else:
-            tenant_counts = {}
+    if rate_rows:
+        tenant_counts = _bulk_upsert(session, rate_date, usd_id, rate_rows)
+    else:
+        tenant_counts = {}
 
-        session.commit()
+    # Build per-tenant summaries
+    tenant_summaries = []
+    for tenant_row in tenant_rows:
+        tid = str(tenant_row.id)
+        counts = tenant_counts.get(tid, {"inserted": 0, "updated": 0})
+        summary = {
+            "tenant_id": tid,
+            "inserted": counts["inserted"],
+            "updated": counts["updated"],
+            "skipped": skipped,
+        }
+        tenant_summaries.append(summary)
+        logger.info("FX rate upsert for tenant %s: %s", tenant_row.id, summary)
 
-        # Build per-tenant summaries
-        tenant_summaries = []
-        for tenant_row in tenant_rows:
-            tid = str(tenant_row.id)
-            counts = tenant_counts.get(tid, {"inserted": 0, "updated": 0})
-            summary = {
-                "tenant_id": tid,
-                "inserted": counts["inserted"],
-                "updated": counts["updated"],
-                "skipped": skipped,
-            }
-            tenant_summaries.append(summary)
-            logger.info("FX rate upsert for tenant %s: %s", tenant_row.id, summary)
-
-        result = {"date": rate_date, "tenants": tenant_summaries}
-        logger.info("FX rate upsert complete: %d tenants processed", len(tenant_summaries))
-        return result
-
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+    result = {"date": rate_date, "tenants": tenant_summaries}
+    logger.info("FX rate upsert complete: %d tenants processed", len(tenant_summaries))
+    return result

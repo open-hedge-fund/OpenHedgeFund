@@ -30,7 +30,7 @@ def fetch_fx_rates(self):
 
     session = get_session()
     try:
-        result = fetch_and_upsert()
+        result = fetch_and_upsert(session)
 
         session.execute(
             text("""
