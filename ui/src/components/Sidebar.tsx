@@ -148,6 +148,16 @@ function StrategyIcon({ size = 22 }: { size?: number }) {
   );
 }
 
+function SectorIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12a9 9 0 1 1-9-9" />
+      <path d="M21 3v6h-6" />
+      <path d="M12 12l4-4" />
+    </svg>
+  );
+}
+
 function MarketCategoryIcon({ size = 22 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -194,6 +204,7 @@ const settingsItems: MenuItem[] = [
   { label: "Custodians", icon: CustodianIcon, href: "/settings/custodians" },
   { label: "Funds", icon: FundIcon, href: "/settings/funds" },
   { label: "Market Categories", icon: MarketCategoryIcon, href: "/settings/market-categories" },
+  { label: "Sectors", icon: SectorIcon, href: "/settings/sectors" },
   { label: "Strategies", icon: StrategyIcon, href: "/settings/strategies" },
 ];
 

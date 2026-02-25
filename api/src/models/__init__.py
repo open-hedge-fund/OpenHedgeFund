@@ -14,6 +14,7 @@ from src.models.job import Job
 from src.models.market_category import MarketCategory
 from src.models.position import Position
 from src.models.price import Price
+from src.models.sector import Sector
 from src.models.security import Security
 from src.models.security_subtype import SecuritySubType
 from src.models.security_type import SecurityType
@@ -38,6 +39,7 @@ __all__ = [
     "MarketCategory",
     "Position",
     "Price",
+    "Sector",
     "Security",
     "SecuritySubType",
     "SecurityType",

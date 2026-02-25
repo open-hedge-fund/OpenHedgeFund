@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.database import Base
 from src.models import (  # noqa: F401
     AssetType, Broker, Continent, Country, Currency, Custodian,
-    File, FileImport, Fund, Job, MarketCategory,
+    File, FileImport, Fund, Holding, FxRate, Job, MarketCategory,
+    Position, Price, Sector, Security,
     SecuritySubType, SecurityType, Strategy, Tenant, User,
 )
 
