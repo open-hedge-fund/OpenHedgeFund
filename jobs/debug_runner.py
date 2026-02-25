@@ -13,10 +13,19 @@ sys.path.insert(0, "src")
 
 
 def run_fx():
+    from src.database import get_session
     from src.jobs.fx_rate_fetcher import fetch_and_upsert
 
-    result = fetch_and_upsert()
-    print("Result:", result)
+    session = get_session()
+    try:
+        result = fetch_and_upsert(session)
+        session.commit()
+        print("Result:", result)
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def run_file(file_import_id: str, file_content: str, file_type: str):
