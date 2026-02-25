@@ -786,6 +786,22 @@ export const countryExposureApi = {
   },
 };
 
+/* ─── Currency Exposure Report ─── */
+export interface CurrencyExposureData {
+  currency: string;
+  long_exposure: number;
+  short_exposure: number;
+  gross_exposure: number;
+  net_exposure: number;
+}
+
+export const currencyExposureApi = {
+  get: async (params: { position_date: string; fund_id?: number }): Promise<CurrencyExposureData[]> => {
+    const response = await api.get("/reports/currency-exposure", { params });
+    return response.data;
+  },
+};
+
 /* ─── Sector Exposure Report ─── */
 export interface SectorExposureData {
   sector: string;
