@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.auth import current_active_user
 from src.database import get_async_session
-from src.models.country import Country
+from src.models.asset_type import AssetType
 from src.models.position import Position
 from src.models.security import Security
 from src.models.user import User
@@ -14,14 +14,13 @@ from src.models.user import User
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
-@router.get("/country-exposure")
-async def country_exposure(
+@router.get("/asset-type-exposure")
+async def asset_type_exposure(
     position_date: date = Query(...),
     fund_id: int | None = Query(None),
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_active_user),
 ):
-    # Build base query joining positions → securities → countries
     long_exp = func.coalesce(
         func.sum(
             case(
@@ -43,16 +42,16 @@ async def country_exposure(
 
     query = (
         select(
-            func.coalesce(Country.country_desc, "Unassigned").label("country"),
+            func.coalesce(AssetType.asset_type_desc, "Unassigned").label("asset_type"),
             long_exp.label("long_exposure"),
             short_exp.label("short_exposure"),
         )
         .select_from(Position)
         .join(Security, Position.security_id == Security.id)
-        .outerjoin(Country, Security.country_id == Country.id)
+        .outerjoin(AssetType, Security.asset_type_id == AssetType.id)
         .where(Position.position_date == position_date)
         .where(Position.tenant_id == user.tenant_id)
-        .group_by(Country.id, Country.country_desc)
+        .group_by(AssetType.id, AssetType.asset_type_desc)
     )
 
     if fund_id is not None:
@@ -61,7 +60,6 @@ async def country_exposure(
     result = await session.execute(query)
     rows = result.all()
 
-    # Build response with pivoted data
     data = []
     total_long = 0.0
     total_short = 0.0
@@ -72,7 +70,7 @@ async def country_exposure(
         gross_val = abs(long_val) + abs(short_val)
         net_val = long_val + short_val
         data.append({
-            "country": row.country,
+            "asset_type": row.asset_type,
             "long_exposure": round(long_val, 2),
             "short_exposure": round(short_val, 2),
             "gross_exposure": round(gross_val, 2),
@@ -81,12 +79,10 @@ async def country_exposure(
         total_long += long_val
         total_short += short_val
 
-    # Sort by gross exposure descending
     data.sort(key=lambda x: x["gross_exposure"], reverse=True)
 
-    # Add totals row
     data.append({
-        "country": "Total",
+        "asset_type": "Total",
         "long_exposure": round(total_long, 2),
         "short_exposure": round(total_short, 2),
         "gross_exposure": round(abs(total_long) + abs(total_short), 2),

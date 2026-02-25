@@ -22,7 +22,9 @@ from src.api.securities import router as securities_router
 from src.api.security_subtypes import router as security_subtypes_router
 from src.api.security_types import router as security_types_router
 from src.api.strategies import router as strategies_router
+from src.api.reports.asset_type_exposure import router as asset_type_exposure_router
 from src.api.reports.country_exposure import router as country_exposure_router
+from src.api.reports.market_category_exposure import router as market_category_exposure_router
 from src.api.reports.sector_exposure import router as sector_exposure_router
 from src.api.sectors import router as sectors_router
 from src.api.tenants import router as tenants_router
@@ -85,6 +87,8 @@ app.include_router(sectors_router)
 app.include_router(strategies_router)
 app.include_router(country_exposure_router)
 app.include_router(sector_exposure_router)
+app.include_router(asset_type_exposure_router)
+app.include_router(market_category_exposure_router)
 
 
 @app.get("/health")
