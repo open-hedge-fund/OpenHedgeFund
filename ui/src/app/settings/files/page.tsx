@@ -97,6 +97,7 @@ function PlusIcon({ size = 16 }: { size?: number }) {
 
 /* ─── Table display names ─── */
 const TABLE_DISPLAY_NAMES: Record<string, string> = {
+  holdings: "Holdings",
   securities: "Security",
   asset_types: "Asset Type",
   continents: "Continent",
@@ -104,6 +105,38 @@ const TABLE_DISPLAY_NAMES: Record<string, string> = {
   countries: "Country",
   currencies: "Currency",
 };
+
+/* ─── Validate-against options ─── */
+const VALIDATE_AGAINST_OPTIONS: { value: string; label: string }[] = [
+  { value: "asset_types", label: "Asset Types" },
+  { value: "brokers", label: "Brokers" },
+  { value: "continents", label: "Continents" },
+  { value: "countries", label: "Countries" },
+  { value: "currencies", label: "Currencies" },
+  { value: "custodians", label: "Custodians" },
+  { value: "funds", label: "Funds" },
+  { value: "market_categories", label: "Market Categories" },
+  { value: "portfolios", label: "Portfolios" },
+  { value: "sectors", label: "Sectors" },
+  { value: "strategies", label: "Strategies" },
+];
+
+function CheckIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
 
 function CloseIcon({ size = 16 }: { size?: number }) {
   return (
@@ -138,7 +171,14 @@ function ColumnMappingsPanel({
   const [newColumnName, setNewColumnName] = useState("");
   const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
   const [newDateFormat, setNewDateFormat] = useState("");
+  const [newValidateAgainst, setNewValidateAgainst] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editColumnName, setEditColumnName] = useState("");
+  const [editMapping, setEditMapping] = useState("");
+  const [editDateFormat, setEditDateFormat] = useState("");
+  const [editValidateAgainst, setEditValidateAgainst] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -179,11 +219,13 @@ function ColumnMappingsPanel({
         table_mapping: tableMapping,
         column_mapping: columnMapping,
         date_format: newDateFormat.trim() || null,
+        validate_against: newValidateAgainst || null,
       });
       setMappings((prev) => [...prev, created]);
       setNewColumnName("");
       setNewMapping("");
       setNewDateFormat("");
+      setNewValidateAgainst("");
     } catch {
       alert("Failed to add column mapping");
     } finally {
@@ -224,6 +266,66 @@ function ColumnMappingsPanel({
       alert("Failed to delete column mapping");
     }
   };
+
+  const startEdit = (m: ColumnDefinitionData) => {
+    setEditingId(m.id);
+    setEditColumnName(m.column_name);
+    setEditMapping(`${m.table_mapping}|${m.column_mapping}`);
+    setEditDateFormat(m.date_format || "");
+    setEditValidateAgainst(m.validate_against || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editColumnName.trim() || !editMapping) return;
+    setIsSaving(true);
+    const [tableMapping, columnMapping] = editMapping.split("|");
+    try {
+      const updated = await columnDefinitionApi.update(editingId, {
+        column_name: editColumnName.trim(),
+        table_mapping: tableMapping,
+        column_mapping: columnMapping,
+        date_format: editDateFormat.trim() || null,
+        validate_against: editValidateAgainst || null,
+      });
+      setMappings((prev) => prev.map((m) => (m.id === editingId ? updated : m)));
+      setEditingId(null);
+    } catch {
+      alert("Failed to update column mapping");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // For edit mode: build mapping options that include the current row's mapping
+  const editFilteredGroupedMappings = useMemo(() => {
+    if (!availableMappings || editingId === null) return null;
+    const editingRow = mappings.find((m) => m.id === editingId);
+    const usedKeys = new Set(
+      mappings
+        .filter((m) => m.id !== editingId)
+        .map((m) => `${m.table_mapping}|${m.column_mapping}`),
+    );
+    const filtered: Record<string, typeof availableMappings.grouped_mappings[string]> = {};
+    for (const [table, opts] of Object.entries(availableMappings.grouped_mappings)) {
+      const available = opts.filter(
+        (opt) =>
+          !usedKeys.has(`${table}|${opt.key}`) ||
+          (editingRow && table === editingRow.table_mapping && opt.key === editingRow.column_mapping),
+      );
+      if (available.length > 0) {
+        filtered[table] = available;
+      }
+    }
+    return filtered;
+  }, [availableMappings, mappings, editingId]);
+
+  const editSelectedKey = editMapping ? editMapping.split("|")[1] : "";
+  const editSelectedOption = availableMappings?.mappings.find((m) => m.key === editSelectedKey);
+  const isEditDateMapping = editSelectedOption?.data_type === "date";
 
   return (
     <div className="column-mappings-panel">
@@ -267,36 +369,148 @@ function ColumnMappingsPanel({
                 <th>Table</th>
                 <th>Mapping</th>
                 <th>Date Format</th>
+                <th>Validate Against</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {mappings.map((m) => (
-                <tr key={m.id}>
-                  <td>{m.column_name}</td>
-                  <td>
-                    <span className="mapping-badge">{TABLE_DISPLAY_NAMES[m.table_mapping] || m.table_mapping}</span>
-                  </td>
-                  <td>
-                    <span className="mapping-badge">{m.column_mapping}</span>
-                  </td>
-                  <td>{m.date_format || ""}</td>
-                  <td>{formatDate(m.created_at)}</td>
-                  <td>
-                    <button
-                      className="file-action-btn file-action-delete"
-                      onClick={() => handleDelete(m.id)}
-                      title="Delete mapping"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {mappings.map((m) =>
+                editingId === m.id ? (
+                  <tr key={m.id}>
+                    <td>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editColumnName}
+                        onChange={(e) => setEditColumnName(e.target.value)}
+                        style={{ minWidth: "120px" }}
+                      />
+                    </td>
+                    <td>
+                      <span className="mapping-badge">
+                        {TABLE_DISPLAY_NAMES[editMapping.split("|")[0]] || editMapping.split("|")[0]}
+                      </span>
+                    </td>
+                    <td>
+                      <select
+                        className="form-select"
+                        value={editMapping}
+                        onChange={(e) => {
+                          setEditMapping(e.target.value);
+                          setEditDateFormat("");
+                        }}
+                        style={{ width: "100%" }}
+                      >
+                        <option value="">Select mapping...</option>
+                        {editFilteredGroupedMappings &&
+                          Object.entries(editFilteredGroupedMappings).map(
+                            ([table, opts]) => (
+                              <optgroup
+                                key={table}
+                                label={TABLE_DISPLAY_NAMES[table] || table}
+                              >
+                                {opts.map((opt) => (
+                                  <option key={opt.key} value={`${table}|${opt.key}`}>
+                                    {opt.key}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ),
+                          )}
+                      </select>
+                    </td>
+                    <td>
+                      {isEditDateMapping && (
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="%m/%d/%Y"
+                          value={editDateFormat}
+                          onChange={(e) => setEditDateFormat(e.target.value)}
+                          style={{ minWidth: "100px" }}
+                        />
+                      )}
+                    </td>
+                    <td>
+                      <select
+                        className="form-select"
+                        value={editValidateAgainst}
+                        onChange={(e) => setEditValidateAgainst(e.target.value)}
+                        style={{ width: "100%" }}
+                      >
+                        <option value="">No validation</option>
+                        {VALIDATE_AGAINST_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td />
+                    <td>
+                      <div className="file-actions">
+                        <button
+                          className="file-action-btn file-action-edit"
+                          onClick={handleSaveEdit}
+                          disabled={isSaving || !editColumnName.trim() || !editMapping}
+                          title="Save"
+                          style={{ color: "var(--color-success, #16a34a)" }}
+                        >
+                          <CheckIcon />
+                        </button>
+                        <button
+                          className="file-action-btn file-action-delete"
+                          onClick={cancelEdit}
+                          title="Cancel"
+                        >
+                          <CloseIcon />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={m.id}>
+                    <td>{m.column_name}</td>
+                    <td>
+                      <span className="mapping-badge">{TABLE_DISPLAY_NAMES[m.table_mapping] || m.table_mapping}</span>
+                    </td>
+                    <td>
+                      <span className="mapping-badge">{m.column_mapping}</span>
+                    </td>
+                    <td>{m.date_format || ""}</td>
+                    <td>
+                      {m.validate_against ? (
+                        <span className="mapping-badge">
+                          {VALIDATE_AGAINST_OPTIONS.find((o) => o.value === m.validate_against)?.label || m.validate_against}
+                        </span>
+                      ) : ""}
+                    </td>
+                    <td>{formatDate(m.created_at)}</td>
+                    <td>
+                      <div className="file-actions">
+                        <button
+                          className="file-action-btn file-action-edit"
+                          onClick={() => startEdit(m)}
+                          title="Edit mapping"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          className="file-action-btn file-action-delete"
+                          onClick={() => handleDelete(m.id)}
+                          title="Delete mapping"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              )}
               {mappings.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="column-mappings-empty">
+                  <td colSpan={7} className="column-mappings-empty">
                     No column mappings defined yet.
                   </td>
                 </tr>
@@ -347,6 +561,19 @@ function ColumnMappingsPanel({
                 style={{ maxWidth: "200px" }}
               />
             )}
+            <select
+              className="form-select"
+              value={newValidateAgainst}
+              onChange={(e) => setNewValidateAgainst(e.target.value)}
+              style={{ maxWidth: "180px" }}
+            >
+              <option value="">No validation</option>
+              {VALIDATE_AGAINST_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
             <button
               className="btn btn-primary btn-add-mapping"
               onClick={handleAdd}

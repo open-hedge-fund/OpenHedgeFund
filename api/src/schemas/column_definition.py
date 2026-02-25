@@ -9,6 +9,7 @@ class ColumnDefinitionBase(BaseModel):
     table_mapping: str
     column_mapping: str
     date_format: str | None = None
+    validate_against: str | None = None
 
 
 class ColumnDefinitionCreate(ColumnDefinitionBase):
@@ -20,6 +21,7 @@ class ColumnDefinitionUpdate(BaseModel):
     table_mapping: str | None = None
     column_mapping: str | None = None
     date_format: str | None = None
+    validate_against: str | None = None
 
 
 class ColumnDefinitionSchema(ColumnDefinitionBase):

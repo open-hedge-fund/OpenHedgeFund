@@ -17,6 +17,7 @@ class ColumnDefinition(Base):
     table_mapping: Mapped[str] = mapped_column(String(255), nullable=False)
     column_mapping: Mapped[str] = mapped_column(String(255), nullable=False)
     date_format: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    validate_against: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False

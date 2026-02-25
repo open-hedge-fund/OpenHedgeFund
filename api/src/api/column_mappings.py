@@ -23,6 +23,8 @@ async def get_available_mappings(
 
     formatted: list[dict[str, Any]] = []
     for key, mapping in all_mappings.items():
+        if mapping.table_name != "holdings":
+            continue
         formatted.append(
             {
                 "key": key,

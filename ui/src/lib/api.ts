@@ -113,6 +113,7 @@ export interface ColumnDefinitionData {
   table_mapping: string;
   column_mapping: string;
   date_format: string | null;
+  validate_against: string | null;
   tenant_id: string;
   created_at: string;
   updated_at: string | null;
@@ -124,6 +125,7 @@ export interface ColumnDefinitionCreateData {
   table_mapping: string;
   column_mapping: string;
   date_format?: string | null;
+  validate_against?: string | null;
 }
 
 export interface ColumnDefinitionUpdateData {
@@ -131,6 +133,7 @@ export interface ColumnDefinitionUpdateData {
   table_mapping?: string;
   column_mapping?: string;
   date_format?: string | null;
+  validate_against?: string | null;
 }
 
 export const columnDefinitionApi = {

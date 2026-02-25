@@ -3,23 +3,23 @@ import uuid
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# (file_name, column_name, table_mapping, column_mapping)
+# (file_name, column_name, table_mapping, column_mapping, validate_against)
 DEFAULT_COLUMN_DEFINITIONS = [
-    ("SOD (Start of Day)", "Date", "holdings", "holding_date"),
-    ("SOD (Start of Day)", "Custodian_ID", "custodians", "account_number"),
-    ("SOD (Start of Day)", "Symbol", "securities", "symbol"),
-    ("SOD (Start of Day)", "Issuing Country", "countries", "country_code"),
-    ("SOD (Start of Day)", "Local Currency", "currencies", "ccy"),
-    ("SOD (Start of Day)", "Asset Class", "asset_types", "asset_type_code"),
-    ("SOD (Start of Day)", "L/S", "holdings", "side"),
-    ("SOD (Start of Day)", "Quantity", "holdings", "quantity_start"),
-    ("SOD (Start of Day)", "Cost (Local Ccy)", "holdings", "cost_local"),
-    ("SOD (Start of Day)", "Cost", "holdings", "cost_base"),
-    ("SOD (Start of Day)", "Outstanding Shares", "holdings", "outstanding_shares"),
-    ("SOD (Start of Day)", "Security Description", "securities", "security_des"),
-    ("SOD (Start of Day)", "SEDOL", "securities", "id_1"),
-    ("SOD (Start of Day)", "ISIN", "securities", "id_2"),
-    ("SOD (Start of Day)", "CUSIP", "securities", "id_3"),
+    ("SOD (Start of Day)", "Date", "holdings", "holding_date", None),
+    ("SOD (Start of Day)", "Custodian_ID", "holdings", "account_number", "custodians"),
+    ("SOD (Start of Day)", "Symbol", "holdings", "symbol", None),
+    ("SOD (Start of Day)", "Issuing Country", "holdings", "country_code", "countries"),
+    ("SOD (Start of Day)", "Local Currency", "holdings", "ccy", "currencies"),
+    ("SOD (Start of Day)", "Asset Class", "holdings", "asset_type_code", "asset_types"),
+    ("SOD (Start of Day)", "L/S", "holdings", "side", None),
+    ("SOD (Start of Day)", "Quantity", "holdings", "quantity_start", None),
+    ("SOD (Start of Day)", "Cost (Local Ccy)", "holdings", "cost_local", None),
+    ("SOD (Start of Day)", "Cost", "holdings", "cost_base", None),
+    ("SOD (Start of Day)", "Outstanding Shares", "holdings", "outstanding_shares", None),
+    ("SOD (Start of Day)", "Security Description", "holdings", "security_des", None),
+    ("SOD (Start of Day)", "SEDOL", "holdings", "id_1", None),
+    ("SOD (Start of Day)", "ISIN", "holdings", "id_2", None),
+    ("SOD (Start of Day)", "CUSIP", "holdings", "id_3", None),
 ]
 
 
@@ -27,7 +27,7 @@ async def insert_default_column_definitions_for_tenant(
     session: AsyncSession, tenant_id: uuid.UUID
 ) -> int:
     inserted = 0
-    for file_name, column_name, table_mapping, column_mapping in DEFAULT_COLUMN_DEFINITIONS:
+    for file_name, column_name, table_mapping, column_mapping, validate_against in DEFAULT_COLUMN_DEFINITIONS:
         # Look up the file_id by name and tenant
         result = await session.execute(
             text("SELECT id FROM files WHERE name = :name AND tenant_id = :tid"),
@@ -50,14 +50,16 @@ async def insert_default_column_definitions_for_tenant(
             await session.execute(
                 text("""
                     INSERT INTO column_definitions
-                        (file_id, column_name, table_mapping, column_mapping, tenant_id, created_at)
-                    VALUES (:fid, :col, :tmap, :cmap, :tid, NOW())
+                        (file_id, column_name, table_mapping, column_mapping,
+                         validate_against, tenant_id, created_at)
+                    VALUES (:fid, :col, :tmap, :cmap, :va, :tid, NOW())
                 """),
                 {
                     "fid": file_id,
                     "col": column_name,
                     "tmap": table_mapping,
                     "cmap": column_mapping,
+                    "va": validate_against,
                     "tid": tenant_id,
                 },
             )

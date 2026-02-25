@@ -24,66 +24,7 @@ class ColumnMapping:
 # Simple flat keys — these are what the user picks from the dropdown.
 
 COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
-    "symbol": ColumnMapping(
-        db_field="symbol",
-        table_name="securities",
-        data_type="string",
-        description="Ticker symbol",
-    ),
-    "id_1": ColumnMapping(
-        db_field="id_1",
-        table_name="securities",
-        data_type="string",
-        description="Security ID 1 (e.g. CUSIP)",
-    ),
-    "id_2": ColumnMapping(
-        db_field="id_2",
-        table_name="securities",
-        data_type="string",
-        description="Security ID 2 (e.g. ISIN)",
-    ),
-    "id_3": ColumnMapping(
-        db_field="id_3",
-        table_name="securities",
-        data_type="string",
-        description="Security ID 3 (e.g. SEDOL)",
-    ),
-    "security_des": ColumnMapping(
-        db_field="security_des",
-        table_name="securities",
-        data_type="string",
-        description="Security description",
-    ),
-    "asset_type_code": ColumnMapping(
-        db_field="asset_type_code",
-        table_name="asset_types",
-        data_type="string",
-        description="Asset type code",
-    ),
-    "continent_code": ColumnMapping(
-        db_field="continent_code",
-        table_name="continents",
-        data_type="string",
-        description="Continent code",
-    ),
-    "custodian_code": ColumnMapping(
-        db_field="custodian_code",
-        table_name="custodians",
-        data_type="string",
-        description="Custodian code",
-    ),
-    "country_code": ColumnMapping(
-        db_field="country_code",
-        table_name="countries",
-        data_type="string",
-        description="Country code",
-    ),
-    "ccy": ColumnMapping(
-        db_field="ccy",
-        table_name="currencies",
-        data_type="string",
-        description="Currency code",
-    ),
+    # ── Date ───────────────────────────────────────────────────────────
     "holding_date": ColumnMapping(
         db_field="holding_date",
         table_name="holdings",
@@ -91,42 +32,7 @@ COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
         nullable=False,
         description="Holding date",
     ),
-    "fund_code": ColumnMapping(
-        db_field="fund_code",
-        table_name="funds",
-        data_type="string",
-        description="Fund code",
-    ),
-    "market_category_code": ColumnMapping(
-        db_field="market_category_code",
-        table_name="market_categories",
-        data_type="string",
-        description="Market category code",
-    ),
-    "security_subtype_code": ColumnMapping(
-        db_field="security_subtype_code",
-        table_name="security_subtypes",
-        data_type="string",
-        description="Security subtype code",
-    ),
-    "account_number": ColumnMapping(
-        db_field="account_number",
-        table_name="custodians",
-        data_type="string",
-        description="Custodian account number",
-    ),
-    "cost_local": ColumnMapping(
-        db_field="cost_local",
-        table_name="holdings",
-        data_type="decimal",
-        description="Cost in local currency",
-    ),
-    "cost_base": ColumnMapping(
-        db_field="cost_base",
-        table_name="holdings",
-        data_type="decimal",
-        description="Cost in base currency",
-    ),
+    # ── Side ───────────────────────────────────────────────────────────
     "side": ColumnMapping(
         db_field="side",
         table_name="holdings",
@@ -134,6 +40,7 @@ COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
         nullable=False,
         description="Long or Short",
     ),
+    # ── Quantities ─────────────────────────────────────────────────────
     "quantity_start": ColumnMapping(
         db_field="quantity_start",
         table_name="holdings",
@@ -146,6 +53,20 @@ COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
         data_type="decimal",
         description="Ending quantity",
     ),
+    # ── Costs ──────────────────────────────────────────────────────────
+    "cost_local": ColumnMapping(
+        db_field="cost_local",
+        table_name="holdings",
+        data_type="decimal",
+        description="Cost in local currency",
+    ),
+    "cost_base": ColumnMapping(
+        db_field="cost_base",
+        table_name="holdings",
+        data_type="decimal",
+        description="Cost in base currency",
+    ),
+    # ── Prices ─────────────────────────────────────────────────────────
     "price_local": ColumnMapping(
         db_field="price_local",
         table_name="holdings",
@@ -158,6 +79,7 @@ COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
         data_type="decimal",
         description="Price in base currency",
     ),
+    # ── Other numeric ──────────────────────────────────────────────────
     "outstanding_shares": ColumnMapping(
         db_field="outstanding_shares",
         table_name="holdings",
@@ -170,11 +92,102 @@ COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
         data_type="decimal",
         description="Market capitalisation",
     ),
+    # ── FK lookups (resolved to _id columns during ETL) ────────────────
+    "symbol": ColumnMapping(
+        db_field="symbol",
+        table_name="holdings",
+        data_type="string",
+        description="Ticker symbol (resolves security_id)",
+    ),
+    "security_des": ColumnMapping(
+        db_field="security_des",
+        table_name="holdings",
+        data_type="string",
+        description="Security description",
+    ),
+    "id_1": ColumnMapping(
+        db_field="id_1",
+        table_name="holdings",
+        data_type="string",
+        description="Security ID 1 (e.g. SEDOL)",
+    ),
+    "id_2": ColumnMapping(
+        db_field="id_2",
+        table_name="holdings",
+        data_type="string",
+        description="Security ID 2 (e.g. ISIN)",
+    ),
+    "id_3": ColumnMapping(
+        db_field="id_3",
+        table_name="holdings",
+        data_type="string",
+        description="Security ID 3 (e.g. CUSIP)",
+    ),
+    "asset_type_code": ColumnMapping(
+        db_field="asset_type_code",
+        table_name="holdings",
+        data_type="string",
+        description="Asset type code",
+    ),
+    "country_code": ColumnMapping(
+        db_field="country_code",
+        table_name="holdings",
+        data_type="string",
+        description="Country code",
+    ),
+    "ccy": ColumnMapping(
+        db_field="ccy",
+        table_name="holdings",
+        data_type="string",
+        description="Currency code",
+    ),
+    "account_number": ColumnMapping(
+        db_field="account_number",
+        table_name="holdings",
+        data_type="string",
+        description="Custodian account number",
+    ),
+    "fund_code": ColumnMapping(
+        db_field="fund_code",
+        table_name="holdings",
+        data_type="string",
+        description="Fund code",
+    ),
+    "broker_code": ColumnMapping(
+        db_field="broker_code",
+        table_name="holdings",
+        data_type="string",
+        description="Broker code",
+    ),
+    "strategy_code": ColumnMapping(
+        db_field="strategy_code",
+        table_name="holdings",
+        data_type="string",
+        description="Strategy code",
+    ),
+    "continent_code": ColumnMapping(
+        db_field="continent_code",
+        table_name="holdings",
+        data_type="string",
+        description="Continent code",
+    ),
+    "market_category_code": ColumnMapping(
+        db_field="market_category_code",
+        table_name="holdings",
+        data_type="string",
+        description="Market category code",
+    ),
     "security_type_code": ColumnMapping(
         db_field="security_type_code",
-        table_name="security_types",
+        table_name="holdings",
         data_type="string",
         description="Security type code",
+    ),
+    "security_subtype_code": ColumnMapping(
+        db_field="security_subtype_code",
+        table_name="holdings",
+        data_type="string",
+        description="Security subtype code",
     ),
 }
 
