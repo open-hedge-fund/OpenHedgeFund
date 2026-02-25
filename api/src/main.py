@@ -23,6 +23,7 @@ from src.api.security_subtypes import router as security_subtypes_router
 from src.api.security_types import router as security_types_router
 from src.api.strategies import router as strategies_router
 from src.api.reports.asset_type_exposure import router as asset_type_exposure_router
+from src.api.reports.market_category_exposure import router as market_category_exposure_router
 from src.api.tenants import router as tenants_router
 from src.api.users import router as users_router
 from src.config import settings
@@ -81,6 +82,7 @@ app.include_router(security_subtypes_router)
 app.include_router(security_types_router)
 app.include_router(strategies_router)
 app.include_router(asset_type_exposure_router)
+app.include_router(market_category_exposure_router)
 
 
 @app.get("/health")
