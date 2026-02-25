@@ -61,9 +61,9 @@ class Holding(Base):
 
     # Relationships
     security: Mapped["Security"] = relationship()  # noqa: F821
-    fund: Mapped["Fund"] = relationship()  # noqa: F821
-    custodian: Mapped["Custodian"] = relationship()  # noqa: F821
-    broker: Mapped["Broker"] = relationship()  # noqa: F821
-    strategy: Mapped["Strategy"] = relationship()  # noqa: F821
-    currency: Mapped["Currency"] = relationship()  # noqa: F821
+    fund: Mapped["Fund | None"] = relationship()  # noqa: F821
+    custodian: Mapped["Custodian | None"] = relationship()  # noqa: F821
+    broker: Mapped["Broker | None"] = relationship()  # noqa: F821
+    strategy: Mapped["Strategy | None"] = relationship()  # noqa: F821
+    currency: Mapped["Currency | None"] = relationship()  # noqa: F821
     tenant: Mapped["Tenant"] = relationship()  # noqa: F821

@@ -10,32 +10,16 @@ import {
   SecurityData,
   fundApi,
   FundData,
+  currencyApi,
+  CurrencyData,
 } from "@/lib/api";
-
-function formatDate(d: string | null): string {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-}
-
-function formatQty(val: number | null): string {
-  if (val == null) return "";
-  return Number(val).toLocaleString();
-}
-
-function formatDecimal2(val: number | null): string {
-  if (val == null) return "";
-  return Number(val).toFixed(2);
-}
-
-function formatDecimal6(val: number | null): string {
-  if (val == null) return "";
-  return Number(val).toFixed(6);
-}
+import { formatDate, formatQty, formatDecimal2, formatDecimal6 } from "@/lib/formatters";
 
 function PositionsContent() {
   const [items, setItems] = useState<PositionData[]>([]);
   const [securities, setSecurities] = useState<Record<number, string>>({});
   const [funds, setFunds] = useState<Record<number, string>>({});
+  const [currencies, setCurrencies] = useState<Record<number, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,10 +31,11 @@ function PositionsContent() {
   async function loadData() {
     try {
       setIsLoading(true);
-      const [positionsData, secData, fundData] = await Promise.all([
+      const [positionsData, secData, fundData, ccyData] = await Promise.all([
         positionApi.getAll(),
         securityApi.getAll(),
         fundApi.getAll(),
+        currencyApi.getAll(),
       ]);
 
       const secLookup: Record<number, string> = {};
@@ -63,8 +48,14 @@ function PositionsContent() {
         fundLookup[f.id] = f.fund_code;
       });
 
+      const ccyLookup: Record<number, string> = {};
+      ccyData.forEach((c: CurrencyData) => {
+        ccyLookup[c.id] = c.ccy;
+      });
+
       setSecurities(secLookup);
       setFunds(fundLookup);
+      setCurrencies(ccyLookup);
       setItems(positionsData);
     } catch (err: any) {
       setError(err.message || "Failed to load positions");
@@ -76,7 +67,7 @@ function PositionsContent() {
   const filteredItems = items.filter((item) => {
     const q = searchQuery.toLowerCase();
     const sec = securities[item.security_id]?.toLowerCase() || "";
-    const fund = funds[item.fund_id]?.toLowerCase() || "";
+    const fund = item.fund_id ? funds[item.fund_id]?.toLowerCase() || "" : "";
     const side = item.side?.toLowerCase() || "";
     const dateStr = item.position_date || "";
     return sec.includes(q) || fund.includes(q) || side.includes(q) || dateStr.includes(q);
@@ -115,6 +106,7 @@ function PositionsContent() {
                   <th>DATE</th>
                   <th>SECURITY</th>
                   <th>FUND</th>
+                  <th>CCY</th>
                   <th>SIDE</th>
                   <th style={{ textAlign: "right" }}>QUANTITY</th>
                   <th style={{ textAlign: "right" }}>COST</th>
@@ -128,7 +120,8 @@ function PositionsContent() {
                   <tr key={item.id}>
                     <td>{formatDate(item.position_date)}</td>
                     <td>{securities[item.security_id] || "?"}</td>
-                    <td>{funds[item.fund_id] || "?"}</td>
+                    <td>{item.fund_id ? funds[item.fund_id] || "?" : ""}</td>
+                    <td>{item.ccy_id ? currencies[item.ccy_id] || "?" : ""}</td>
                     <td>
                       <span style={{
                         display: "inline-flex",

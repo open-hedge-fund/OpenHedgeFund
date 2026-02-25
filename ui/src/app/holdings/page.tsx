@@ -12,33 +12,17 @@ import {
   FundData,
   custodianApi,
   CustodianData,
+  currencyApi,
+  CurrencyData,
 } from "@/lib/api";
-
-function formatDate(d: string | null): string {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-}
-
-function formatQty(val: number | null): string {
-  if (val == null) return "";
-  return Number(val).toLocaleString();
-}
-
-function formatDecimal2(val: number | null): string {
-  if (val == null) return "";
-  return Number(val).toFixed(2);
-}
-
-function formatDecimal6(val: number | null): string {
-  if (val == null) return "";
-  return Number(val).toFixed(6);
-}
+import { formatDate, formatQty, formatDecimal2, formatDecimal6 } from "@/lib/formatters";
 
 function HoldingsContent() {
   const [items, setItems] = useState<HoldingData[]>([]);
   const [securities, setSecurities] = useState<Record<number, string>>({});
   const [funds, setFunds] = useState<Record<number, string>>({});
   const [custodians, setCustodians] = useState<Record<number, string>>({});
+  const [currencies, setCurrencies] = useState<Record<number, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -50,11 +34,12 @@ function HoldingsContent() {
   async function loadData() {
     try {
       setIsLoading(true);
-      const [holdingsData, secData, fundData, custData] = await Promise.all([
+      const [holdingsData, secData, fundData, custData, ccyData] = await Promise.all([
         holdingApi.getAll(),
         securityApi.getAll(),
         fundApi.getAll(),
         custodianApi.getAll(),
+        currencyApi.getAll(),
       ]);
 
       const secLookup: Record<number, string> = {};
@@ -72,9 +57,15 @@ function HoldingsContent() {
         custLookup[c.id] = c.custodian_code;
       });
 
+      const ccyLookup: Record<number, string> = {};
+      ccyData.forEach((c: CurrencyData) => {
+        ccyLookup[c.id] = c.ccy;
+      });
+
       setSecurities(secLookup);
       setFunds(fundLookup);
       setCustodians(custLookup);
+      setCurrencies(ccyLookup);
       setItems(holdingsData);
     } catch (err: any) {
       setError(err.message || "Failed to load holdings");
@@ -86,8 +77,8 @@ function HoldingsContent() {
   const filteredItems = items.filter((item) => {
     const q = searchQuery.toLowerCase();
     const sec = securities[item.security_id]?.toLowerCase() || "";
-    const fund = funds[item.fund_id]?.toLowerCase() || "";
-    const cust = custodians[item.custodian_id]?.toLowerCase() || "";
+    const fund = item.fund_id ? funds[item.fund_id]?.toLowerCase() || "" : "";
+    const cust = item.custodian_id ? custodians[item.custodian_id]?.toLowerCase() || "" : "";
     const side = item.side?.toLowerCase() || "";
     const dateStr = item.holding_date || "";
     return sec.includes(q) || fund.includes(q) || cust.includes(q) || side.includes(q) || dateStr.includes(q);
@@ -127,6 +118,7 @@ function HoldingsContent() {
                   <th>SECURITY</th>
                   <th>FUND</th>
                   <th>CUSTODIAN</th>
+                  <th>CCY</th>
                   <th>SIDE</th>
                   <th style={{ textAlign: "right" }}>QTY START</th>
                   <th style={{ textAlign: "right" }}>QTY END</th>
@@ -141,8 +133,9 @@ function HoldingsContent() {
                   <tr key={item.id}>
                     <td>{formatDate(item.holding_date)}</td>
                     <td>{securities[item.security_id] || "?"}</td>
-                    <td>{funds[item.fund_id] || "?"}</td>
-                    <td>{custodians[item.custodian_id] || "?"}</td>
+                    <td>{item.fund_id ? funds[item.fund_id] || "?" : ""}</td>
+                    <td>{item.custodian_id ? custodians[item.custodian_id] || "?" : ""}</td>
+                    <td>{item.ccy_id ? currencies[item.ccy_id] || "?" : ""}</td>
                     <td>
                       <span style={{
                         display: "inline-flex",
