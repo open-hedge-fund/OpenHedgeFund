@@ -754,4 +754,20 @@ export const tenantApi = {
   },
 };
 
+/* ─── Market Category Exposure Report ─── */
+export interface MarketCategoryExposureData {
+  market_category: string;
+  long_exposure: number;
+  short_exposure: number;
+  gross_exposure: number;
+  net_exposure: number;
+}
+
+export const marketCategoryExposureApi = {
+  get: async (params: { position_date: string; fund_id?: number }): Promise<MarketCategoryExposureData[]> => {
+    const response = await api.get("/reports/market-category-exposure", { params });
+    return response.data;
+  },
+};
+
 export default api;
