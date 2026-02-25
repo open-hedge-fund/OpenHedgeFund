@@ -316,6 +316,19 @@ export interface FundData {
 
 export const fundApi = createCrudApi<FundData>("/funds");
 
+/* ─── Portfolios ─── */
+export interface PortfolioData {
+  id: number;
+  portfolio_code: string;
+  portfolio_desc: string;
+  is_active: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export const portfolioApi = createCrudApi<PortfolioData>("/portfolios");
+
 /* ─── Market Categories ─── */
 export interface MarketCategoryData {
   id: number;
@@ -846,6 +859,47 @@ export interface MarketCategoryExposureData {
 export const marketCategoryExposureApi = {
   get: async (params: { position_date: string; fund_id?: number }): Promise<MarketCategoryExposureData[]> => {
     const response = await api.get("/reports/market-category-exposure", { params });
+    return response.data;
+  },
+};
+
+/* ─── Portfolio View Report ─── */
+export interface PortfolioViewRow {
+  underlier: string;
+  security_description: string;
+  last_price: number | null;
+  current_qty: number | null;
+  market_value_base: number;
+  cost_local: number;
+  unrealized_pl_pct: number | null;
+  cost_base: number;
+  unrealized_pl_base_pct: number | null;
+  pct_of_portfolio: number | null;
+}
+
+export interface PortfolioViewTotals {
+  market_value_base: number;
+  cost_local: number;
+  unrealized_pl_pct: number | null;
+  cost_base: number;
+  unrealized_pl_base_pct: number | null;
+  pct_of_portfolio: number | null;
+}
+
+export interface PortfolioViewSection {
+  fund_code: string;
+  rows: PortfolioViewRow[];
+  subtotal_other_assets: PortfolioViewTotals;
+  total_portfolio: PortfolioViewTotals;
+}
+
+export interface PortfolioViewResponse {
+  sections: PortfolioViewSection[];
+}
+
+export const portfolioViewApi = {
+  get: async (params: { position_date: string; fund_id?: number }): Promise<PortfolioViewResponse> => {
+    const response = await api.get("/reports/portfolio-view", { params });
     return response.data;
   },
 };
