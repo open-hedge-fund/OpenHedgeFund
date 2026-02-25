@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 AGGREGATE_SQL = text("""
     INSERT INTO positions
         (position_date, security_id, fund_id, side, strategy_id, ccy_id,
-         quantity, cost, price_local, price_base,
+         quantity, cost_local, cost_base, price_local, price_base,
          outstanding_shares, market_cap, tenant_id)
     SELECT
         holding_date,
@@ -25,6 +25,7 @@ AGGREGATE_SQL = text("""
         strategy_id,
         ccy_id,
         SUM(quantity_end),
+        SUM(cost_local),
         SUM(cost_base),
         (array_agg(price_local ORDER BY id))[1],
         (array_agg(price_base  ORDER BY id))[1],

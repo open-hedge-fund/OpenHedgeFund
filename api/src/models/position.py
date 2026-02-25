@@ -34,7 +34,8 @@ class Position(Base):
 
     # Numeric fields
     quantity: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
-    cost: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
+    cost_local: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
+    cost_base: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=2), nullable=True)
     price_local: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
     price_base: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=6), nullable=True)
     outstanding_shares: Mapped[Decimal | None] = mapped_column(Numeric(precision=18, scale=0), nullable=True)

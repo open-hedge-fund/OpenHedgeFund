@@ -13,7 +13,8 @@ class PositionBase(BaseModel):
     ccy_id: int | None = None
     side: str
     quantity: Decimal | None = None
-    cost: Decimal | None = None
+    cost_local: Decimal | None = None
+    cost_base: Decimal | None = None
     price_local: Decimal | None = None
     price_base: Decimal | None = None
     outstanding_shares: Decimal | None = None
@@ -32,7 +33,8 @@ class PositionUpdate(BaseModel):
     ccy_id: int | None = None
     side: str | None = None
     quantity: Decimal | None = None
-    cost: Decimal | None = None
+    cost_local: Decimal | None = None
+    cost_base: Decimal | None = None
     price_local: Decimal | None = None
     price_base: Decimal | None = None
     outstanding_shares: Decimal | None = None
