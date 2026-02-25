@@ -754,6 +754,22 @@ export const tenantApi = {
   },
 };
 
+/* ─── Country Exposure Report ─── */
+export interface CountryExposureData {
+  country: string;
+  long_exposure: number;
+  short_exposure: number;
+  gross_exposure: number;
+  net_exposure: number;
+}
+
+export const countryExposureApi = {
+  get: async (params: { position_date: string; fund_id?: number }): Promise<CountryExposureData[]> => {
+    const response = await api.get("/reports/country-exposure", { params });
+    return response.data;
+  },
+};
+
 /* ─── Asset Type Exposure Report ─── */
 export interface AssetTypeExposureData {
   asset_type: string;
