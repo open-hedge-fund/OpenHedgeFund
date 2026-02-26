@@ -514,7 +514,7 @@ function DetailPanel({
                       coupon: null, maturity_date: null, issue_date: null,
                       first_coupon_date: null, penultimate_coupon_date: null, last_update_date: null,
                       ccy_id: null, country_id: null, security_subtype_id: null,
-                      asset_type_id: null, market_category_id: null,
+                      asset_type_id: null, sector_id: null, market_category_id: null,
                       tenant_id: "", created_at: "", updated_at: null,
                     };
                     const createTabProps: TabProps = { security: dummySecurity, lookups, ref: refData, editing: true, form, setForm };
