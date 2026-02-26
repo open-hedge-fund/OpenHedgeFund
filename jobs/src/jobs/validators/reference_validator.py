@@ -9,11 +9,13 @@ from src.jobs.validators.base import BaseValidator, ValidationContext
 
 logger = logging.getLogger(__name__)
 
-# Only these tables may be queried — prevents SQL injection via table_mapping.
+# Only these tables may be queried — prevents SQL injection via ref_table.
 ALLOWED_TABLES = frozenset({
     "securities",
     "custodians",
     "funds",
+    "brokers",
+    "strategies",
     "asset_types",
     "continents",
     "countries",
@@ -28,23 +30,29 @@ class ReferenceValidator(BaseValidator):
     """Bulk-loads valid values from reference tables, then checks each row."""
 
     def validate(self, df: pd.DataFrame, ctx: ValidationContext) -> pd.DataFrame:
-        # Group column_defs by (table, field) to avoid duplicate DB lookups.
+        # Group column_defs by (ref_table, db_field) to avoid duplicate DB lookups.
         lookups: dict[tuple[str, str], list] = {}
         for col_def in ctx.column_defs:
             mapping = ctx.column_mappings.get(col_def.column_mapping)
             if mapping is None:
                 continue
-            # Skip columns that map directly to the holdings table.
-            if mapping.table_name == "holdings":
+
+            # Only validate columns with role="validator" or role="resolver"
+            # that have a ref_table defined.
+            if mapping.role == "direct":
                 continue
-            # Securities are auto-created during FK resolution; skip validation here.
-            if mapping.table_name == "securities":
-                continue
-            if mapping.table_name not in ALLOWED_TABLES:
-                logger.warning("Skipping disallowed table: %s", mapping.table_name)
+            if not mapping.ref_table:
                 continue
 
-            key = (mapping.table_name, mapping.db_field)
+            # Securities are auto-created during FK resolution; skip validation here.
+            if mapping.ref_table == "securities":
+                continue
+
+            if mapping.ref_table not in ALLOWED_TABLES:
+                logger.warning("Skipping disallowed table: %s", mapping.ref_table)
+                continue
+
+            key = (mapping.ref_table, mapping.db_field)
             lookups.setdefault(key, []).append(col_def)
 
         # For each unique (table, field), fetch valid values once.

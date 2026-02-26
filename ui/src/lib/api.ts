@@ -77,16 +77,16 @@ export const fileApi = {
 export interface ColumnMappingOption {
   key: string;
   label: string;
-  table: string;
   data_type: string;
   description: string;
   db_field: string;
-  csv_column: string;
+  role: "direct" | "resolver";
+  ref_table: string | null;
+  resolves_to: string | null;
 }
 
 export interface AvailableMappingsResponse {
   mappings: ColumnMappingOption[];
-  grouped_mappings: Record<string, ColumnMappingOption[]>;
   summary: Record<string, string[]>;
 }
 
@@ -110,10 +110,8 @@ export interface ColumnDefinitionData {
   id: number;
   file_id: number;
   column_name: string;
-  table_mapping: string;
   column_mapping: string;
   date_format: string | null;
-  validate_against: string | null;
   tenant_id: string;
   created_at: string;
   updated_at: string | null;
@@ -122,18 +120,14 @@ export interface ColumnDefinitionData {
 export interface ColumnDefinitionCreateData {
   file_id: number;
   column_name: string;
-  table_mapping: string;
   column_mapping: string;
   date_format?: string | null;
-  validate_against?: string | null;
 }
 
 export interface ColumnDefinitionUpdateData {
   column_name?: string;
-  table_mapping?: string;
   column_mapping?: string;
   date_format?: string | null;
-  validate_against?: string | null;
 }
 
 export const columnDefinitionApi = {
@@ -648,6 +642,8 @@ export interface HoldingData {
   broker_id: number | null;
   strategy_id: number | null;
   ccy_id: number | null;
+  country_id: number | null;
+  asset_type_id: number | null;
   side: string;
   quantity_start: number | null;
   quantity_end: number | null;
@@ -670,6 +666,8 @@ export interface HoldingCreateData {
   broker_id?: number;
   strategy_id?: number;
   ccy_id?: number;
+  country_id?: number;
+  asset_type_id?: number;
   side: string;
   quantity_start?: number;
   quantity_end?: number;
@@ -689,6 +687,8 @@ export interface HoldingUpdateData {
   broker_id?: number;
   strategy_id?: number;
   ccy_id?: number;
+  country_id?: number;
+  asset_type_id?: number;
   side?: string;
   quantity_start?: number;
   quantity_end?: number;

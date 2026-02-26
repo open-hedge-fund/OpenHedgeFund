@@ -15,17 +15,17 @@ from src.jobs.validators.required_validator import RequiredValidator
 from src.jobs.validators.date_validator import DateValidator
 from src.jobs.validators.decimal_validator import DecimalValidator
 from src.jobs.validators.side_validator import SideValidator
-from src.jobs.validators.reference_validator import ReferenceValidator
 
 logger = logging.getLogger(__name__)
 
-# Order matters: cheap checks first, DB lookups last.
+# Order matters: cheap checks first.
+# Reference validation is handled implicitly by the FK resolver —
+# if a value doesn't exist in the reference table, the FK can't be resolved.
 VALIDATORS: list[BaseValidator] = [
     RequiredValidator(),
     DateValidator(),
     DecimalValidator(),
     SideValidator(),
-    ReferenceValidator(),
 ]
 
 __all__ = [

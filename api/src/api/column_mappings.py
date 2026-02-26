@@ -23,29 +23,21 @@ async def get_available_mappings(
 
     formatted: list[dict[str, Any]] = []
     for key, mapping in all_mappings.items():
-        if mapping.table_name != "holdings":
-            continue
         formatted.append(
             {
                 "key": key,
                 "label": mapping.description,
-                "table": mapping.table_name,
                 "data_type": mapping.data_type,
                 "description": mapping.description,
                 "db_field": mapping.db_field,
+                "role": mapping.role,
+                "ref_table": mapping.ref_table,
+                "resolves_to": mapping.resolves_to,
             }
         )
 
-    grouped: dict[str, list[dict[str, Any]]] = {}
-    for m in formatted:
-        table = m["table"]
-        if table not in grouped:
-            grouped[table] = []
-        grouped[table].append(m)
-
     return {
         "mappings": formatted,
-        "grouped_mappings": grouped,
         "summary": mapper_service.get_mappings_summary(),
     }
 
@@ -73,9 +65,11 @@ async def validate_mapping(
             "mapping": {
                 "key": mapping_key,
                 "db_field": mapping.db_field,
-                "table_name": mapping.table_name,
                 "data_type": mapping.data_type,
                 "description": mapping.description,
+                "role": mapping.role,
+                "ref_table": mapping.ref_table,
+                "resolves_to": mapping.resolves_to,
             },
         }
     return {

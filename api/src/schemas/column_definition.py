@@ -6,10 +6,8 @@ from pydantic import BaseModel
 
 class ColumnDefinitionBase(BaseModel):
     column_name: str
-    table_mapping: str
     column_mapping: str
     date_format: str | None = None
-    validate_against: str | None = None
 
 
 class ColumnDefinitionCreate(ColumnDefinitionBase):
@@ -18,10 +16,8 @@ class ColumnDefinitionCreate(ColumnDefinitionBase):
 
 class ColumnDefinitionUpdate(BaseModel):
     column_name: str | None = None
-    table_mapping: str | None = None
     column_mapping: str | None = None
     date_format: str | None = None
-    validate_against: str | None = None
 
 
 class ColumnDefinitionSchema(ColumnDefinitionBase):
