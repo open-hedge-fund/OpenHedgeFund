@@ -3,6 +3,10 @@ Column mapping utilities for CSV/PIPE file uploads.
 
 Provides mapping definitions and utilities to transform file columns
 into the appropriate database fields during the ETL process.
+
+Each mapping has a `role`:
+  - "direct"   — value is stored straight into the holdings column
+  - "resolver" — value is used to look up a foreign-key ID in a reference table
 """
 
 from dataclasses import dataclass
@@ -14,167 +18,177 @@ class ColumnMapping:
     """Represents a mapping from a file column to a database field."""
 
     db_field: str
-    table_name: str
+    description: str
     data_type: str
+    role: str  # "direct" | "resolver"
+    ref_table: str | None = None  # Reference table for resolver lookups
+    resolves_to: str | None = None  # FK column name for resolvers (e.g. "security_id")
     nullable: bool = True
-    description: str = ""
 
 
 # ── Available mappings ───────────────────────────────────────────────────
 # Simple flat keys — these are what the user picks from the dropdown.
 
 COLUMN_MAPPINGS: dict[str, ColumnMapping] = {
-    "symbol": ColumnMapping(
-        db_field="symbol",
-        table_name="securities",
-        data_type="string",
-        description="Ticker symbol",
-    ),
-    "id_1": ColumnMapping(
-        db_field="id_1",
-        table_name="securities",
-        data_type="string",
-        description="Security ID 1 (e.g. CUSIP)",
-    ),
-    "id_2": ColumnMapping(
-        db_field="id_2",
-        table_name="securities",
-        data_type="string",
-        description="Security ID 2 (e.g. ISIN)",
-    ),
-    "id_3": ColumnMapping(
-        db_field="id_3",
-        table_name="securities",
-        data_type="string",
-        description="Security ID 3 (e.g. SEDOL)",
-    ),
-    "security_des": ColumnMapping(
-        db_field="security_des",
-        table_name="securities",
-        data_type="string",
-        description="Security description",
-    ),
-    "asset_type_code": ColumnMapping(
-        db_field="asset_type_code",
-        table_name="asset_types",
-        data_type="string",
-        description="Asset type code",
-    ),
-    "continent_code": ColumnMapping(
-        db_field="continent_code",
-        table_name="continents",
-        data_type="string",
-        description="Continent code",
-    ),
-    "custodian_code": ColumnMapping(
-        db_field="custodian_code",
-        table_name="custodians",
-        data_type="string",
-        description="Custodian code",
-    ),
-    "country_code": ColumnMapping(
-        db_field="country_code",
-        table_name="countries",
-        data_type="string",
-        description="Country code",
-    ),
-    "ccy": ColumnMapping(
-        db_field="ccy",
-        table_name="currencies",
-        data_type="string",
-        description="Currency code",
-    ),
+    # ── Direct columns (stored straight to holdings) ─────────────────────
     "holding_date": ColumnMapping(
         db_field="holding_date",
-        table_name="holdings",
+        description="Holding Date",
         data_type="date",
+        role="direct",
         nullable=False,
-        description="Holding date",
-    ),
-    "fund_code": ColumnMapping(
-        db_field="fund_code",
-        table_name="funds",
-        data_type="string",
-        description="Fund code",
-    ),
-    "market_category_code": ColumnMapping(
-        db_field="market_category_code",
-        table_name="market_categories",
-        data_type="string",
-        description="Market category code",
-    ),
-    "security_subtype_code": ColumnMapping(
-        db_field="security_subtype_code",
-        table_name="security_subtypes",
-        data_type="string",
-        description="Security subtype code",
-    ),
-    "account_number": ColumnMapping(
-        db_field="account_number",
-        table_name="custodians",
-        data_type="string",
-        description="Custodian account number",
-    ),
-    "cost_local": ColumnMapping(
-        db_field="cost_local",
-        table_name="holdings",
-        data_type="decimal",
-        description="Cost in local currency",
-    ),
-    "cost_base": ColumnMapping(
-        db_field="cost_base",
-        table_name="holdings",
-        data_type="decimal",
-        description="Cost in base currency",
     ),
     "side": ColumnMapping(
         db_field="side",
-        table_name="holdings",
+        description="Long / Short",
         data_type="string",
+        role="direct",
         nullable=False,
-        description="Long or Short",
     ),
     "quantity_start": ColumnMapping(
         db_field="quantity_start",
-        table_name="holdings",
+        description="Quantity",
         data_type="decimal",
-        description="Starting quantity",
+        role="direct",
     ),
     "quantity_end": ColumnMapping(
         db_field="quantity_end",
-        table_name="holdings",
+        description="Quantity (End)",
         data_type="decimal",
-        description="Ending quantity",
+        role="direct",
+    ),
+    "cost_local": ColumnMapping(
+        db_field="cost_local",
+        description="Cost (Local)",
+        data_type="decimal",
+        role="direct",
+    ),
+    "cost_base": ColumnMapping(
+        db_field="cost_base",
+        description="Cost (Base)",
+        data_type="decimal",
+        role="direct",
     ),
     "price_local": ColumnMapping(
         db_field="price_local",
-        table_name="holdings",
+        description="Price (Local)",
         data_type="decimal",
-        description="Price in local currency",
+        role="direct",
     ),
     "price_base": ColumnMapping(
         db_field="price_base",
-        table_name="holdings",
+        description="Price (Base)",
         data_type="decimal",
-        description="Price in base currency",
+        role="direct",
     ),
     "outstanding_shares": ColumnMapping(
         db_field="outstanding_shares",
-        table_name="holdings",
+        description="Outstanding Shares",
         data_type="decimal",
-        description="Total outstanding shares",
+        role="direct",
     ),
     "market_cap": ColumnMapping(
         db_field="market_cap",
-        table_name="holdings",
+        description="Market Cap",
         data_type="decimal",
-        description="Market capitalisation",
+        role="direct",
     ),
-    "security_type_code": ColumnMapping(
-        db_field="security_type_code",
-        table_name="security_types",
+    # ── Resolvers (look up FK IDs) ───────────────────────────────────────
+    "symbol": ColumnMapping(
+        db_field="symbol",
+        description="Ticker Symbol",
         data_type="string",
-        description="Security type code",
+        role="resolver",
+        ref_table="securities",
+        resolves_to="security_id",
+    ),
+    "security_des": ColumnMapping(
+        db_field="security_des",
+        description="Security Name",
+        data_type="string",
+        role="resolver",
+        ref_table="securities",
+        resolves_to="security_id",
+    ),
+    "id_1": ColumnMapping(
+        db_field="id_1",
+        description="SEDOL",
+        data_type="string",
+        role="resolver",
+        ref_table="securities",
+        resolves_to="security_id",
+    ),
+    "id_2": ColumnMapping(
+        db_field="id_2",
+        description="ISIN",
+        data_type="string",
+        role="resolver",
+        ref_table="securities",
+        resolves_to="security_id",
+    ),
+    "id_3": ColumnMapping(
+        db_field="id_3",
+        description="CUSIP",
+        data_type="string",
+        role="resolver",
+        ref_table="securities",
+        resolves_to="security_id",
+    ),
+    "account_number": ColumnMapping(
+        db_field="account_number",
+        description="Custodian Account",
+        data_type="string",
+        role="resolver",
+        ref_table="custodians",
+        resolves_to="custodian_id",
+    ),
+    "fund_code": ColumnMapping(
+        db_field="fund_code",
+        description="Fund",
+        data_type="string",
+        role="resolver",
+        ref_table="funds",
+        resolves_to="fund_id",
+    ),
+    "broker_code": ColumnMapping(
+        db_field="broker_code",
+        description="Broker",
+        data_type="string",
+        role="resolver",
+        ref_table="brokers",
+        resolves_to="broker_id",
+    ),
+    "strategy_code": ColumnMapping(
+        db_field="strategy_code",
+        description="Strategy",
+        data_type="string",
+        role="resolver",
+        ref_table="strategies",
+        resolves_to="strategy_id",
+    ),
+    "ccy": ColumnMapping(
+        db_field="ccy",
+        description="Currency",
+        data_type="string",
+        role="resolver",
+        ref_table="currencies",
+        resolves_to="ccy_id",
+    ),
+    "country_code": ColumnMapping(
+        db_field="country_code",
+        description="Country",
+        data_type="string",
+        role="resolver",
+        ref_table="countries",
+        resolves_to="country_id",
+    ),
+    "asset_type_code": ColumnMapping(
+        db_field="asset_type_code",
+        description="Asset Class",
+        data_type="string",
+        role="resolver",
+        ref_table="asset_types",
+        resolves_to="asset_type_id",
     ),
 }
 
@@ -219,8 +233,8 @@ class ColumnMappingService:
     def get_mappings_summary(self) -> dict[str, list[str]]:
         summary: dict[str, list[str]] = {}
         for key, mapping in COLUMN_MAPPINGS.items():
-            table = mapping.table_name
-            if table not in summary:
-                summary[table] = []
-            summary[table].append(key)
+            role = mapping.role
+            if role not in summary:
+                summary[role] = []
+            summary[role].append(key)
         return summary

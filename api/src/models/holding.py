@@ -36,6 +36,12 @@ class Holding(Base):
     ccy_id: Mapped[int | None] = mapped_column(
         BigInteger, ForeignKey("currencies.id"), nullable=True
     )
+    country_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("countries.id"), nullable=True
+    )
+    asset_type_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("asset_types.id"), nullable=True
+    )
     side: Mapped[str] = mapped_column(String(5), nullable=False)  # 'Long' or 'Short'
 
     # Numeric fields
@@ -66,4 +72,6 @@ class Holding(Base):
     broker: Mapped["Broker | None"] = relationship()  # noqa: F821
     strategy: Mapped["Strategy | None"] = relationship()  # noqa: F821
     currency: Mapped["Currency | None"] = relationship()  # noqa: F821
+    country: Mapped["Country | None"] = relationship()  # noqa: F821
+    asset_type: Mapped["AssetType | None"] = relationship()  # noqa: F821
     tenant: Mapped["Tenant"] = relationship()  # noqa: F821

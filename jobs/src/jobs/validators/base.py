@@ -14,8 +14,7 @@ class ColumnDef:
     """A single column definition from the database — maps a CSV header to a DB field."""
 
     column_name: str  # CSV header (e.g. "Custodian_ID")
-    table_mapping: str  # Target table  (e.g. "custodians")
-    column_mapping: str  # Target field  (e.g. "account_number")
+    column_mapping: str  # Mapping key  (e.g. "account_number")
     date_format: str | None = None  # Explicit date format (e.g. "%m/%d/%Y")
 
 

@@ -11,38 +11,30 @@ from src.jobs.validators.base import ColumnDef
 
 logger = logging.getLogger(__name__)
 
-# (table_name, db_field) → holdings FK column name
-HOLDINGS_FK_MAP: dict[tuple[str, str], str] = {
-    ("securities", "symbol"): "security_id",
-    ("securities", "id_1"): "security_id",
-    ("securities", "id_2"): "security_id",
-    ("securities", "id_3"): "security_id",
-    ("custodians", "account_number"): "custodian_id",
-    ("custodians", "custodian_code"): "custodian_id",
-    ("funds", "fund_code"): "fund_id",
-}
-
 # When multiple identifiers resolve to the same FK (e.g. security_id),
 # prefer more precise/unique identifiers over less unique ones.
 # Lower number = higher priority.
-FK_IDENTIFIER_PRIORITY: dict[tuple[str, str], int] = {
-    ("securities", "id_1"): 0,
-    ("securities", "id_2"): 1,
-    ("securities", "id_3"): 2,
-    ("securities", "symbol"): 3,
+FK_IDENTIFIER_PRIORITY: dict[str, int] = {
+    "id_1": 0,   # SEDOL
+    "id_2": 1,   # ISIN
+    "id_3": 2,   # CUSIP
+    "symbol": 3,
 }
-
-# Whitelist for table names used in queries.
-ALLOWED_TABLES = frozenset(
-    {
-        "securities",
-        "custodians",
-        "funds",
-    }
-)
 
 # Tables where missing values are auto-created instead of flagged as errors.
 AUTO_CREATE_TABLES: frozenset[str] = frozenset({"securities"})
+
+# Whitelist for table names used in queries.
+ALLOWED_TABLES = frozenset({
+    "securities",
+    "custodians",
+    "funds",
+    "brokers",
+    "strategies",
+    "currencies",
+    "countries",
+    "asset_types",
+})
 
 # Values that should be treated as NULL (pandas NaN stringified).
 _NULL_STRINGS: frozenset[str] = frozenset({"NAN", "NONE", "NULL", "NA", ""})
@@ -65,7 +57,7 @@ def resolve_foreign_keys(
     Returns ``(mutated_DataFrame, auto_created_count)``.
     """
     resolved_cols: set[str] = set()
-    # Track (table_name, db_field) per resolved column for auto-creation.
+    # Track (ref_table, db_field, src_col) per resolved column for auto-creation.
     resolved_meta: dict[str, tuple[str, str, str]] = {}  # resolved_name → (table, field, src_col)
     auto_created_count = 0
 
@@ -74,22 +66,14 @@ def resolve_foreign_keys(
     security_field_cols: dict[str, str] = {}  # db_field → DataFrame column name
     for cd in col_defs:
         m = mappings.get(cd.column_mapping)
-        if m and m.table_name == "securities" and cd.column_name in df.columns:
+        if m and m.role == "resolver" and m.ref_table == "securities" and cd.column_name in df.columns:
             security_field_cols.setdefault(m.db_field, cd.column_name)
 
     # Sort col_defs so higher-priority identifiers are resolved first.
-    # For entries not in the priority map, use a high default so they
-    # sort after all prioritised identifiers.
     _DEFAULT_PRIORITY = 999
     sorted_col_defs = sorted(
         col_defs,
-        key=lambda cd: FK_IDENTIFIER_PRIORITY.get(
-            (
-                mappings.get(cd.column_mapping, ColumnMapping("", "", "")).table_name,
-                mappings.get(cd.column_mapping, ColumnMapping("", "", "")).db_field,
-            ),
-            _DEFAULT_PRIORITY,
-        ),
+        key=lambda cd: FK_IDENTIFIER_PRIORITY.get(cd.column_mapping, _DEFAULT_PRIORITY),
     )
 
     for col_def in sorted_col_defs:
@@ -97,27 +81,27 @@ def resolve_foreign_keys(
         if mapping is None:
             continue
 
-        key = (mapping.table_name, mapping.db_field)
-        fk_col = HOLDINGS_FK_MAP.get(key)
-        if fk_col is None:
+        # Only process resolver mappings
+        if mapping.role != "resolver" or not mapping.resolves_to or not mapping.ref_table:
             continue
 
+        if mapping.ref_table not in ALLOWED_TABLES:
+            continue
+
+        fk_col = mapping.resolves_to  # e.g. "security_id", "custodian_id"
         resolved_name = f"_resolved_{fk_col}"
 
         col = col_def.column_name
         if col not in df.columns:
             continue
 
-        if mapping.table_name not in ALLOWED_TABLES:
-            continue
-
-        id_map = _build_id_map(session, mapping.table_name, mapping.db_field, tenant_id)
+        id_map = _build_id_map(session, mapping.ref_table, mapping.db_field, tenant_id)
 
         if resolved_name not in resolved_cols:
             # First identifier for this FK — create the resolved column.
             df[resolved_name] = df[col].astype(str).str.strip().str.upper().map(id_map)
             resolved_cols.add(resolved_name)
-            resolved_meta[resolved_name] = (mapping.table_name, mapping.db_field, col)
+            resolved_meta[resolved_name] = (mapping.ref_table, mapping.db_field, col)
             logger.info("Resolved %s → %s (%d unique values)", col, resolved_name, len(id_map))
         else:
             # Fill gaps: for rows still unresolved, try this lower-priority identifier.
@@ -144,7 +128,6 @@ def resolve_foreign_keys(
 
         if table in AUTO_CREATE_TABLES:
             # Auto-create securities for rows still missing a resolved FK.
-            # For each unresolved row, pick the best available identifier.
             rows_to_create = _collect_rows_for_auto_creation(
                 df, missing_fk, security_field_cols,
             )
@@ -157,7 +140,6 @@ def resolve_foreign_keys(
 
                 # Re-map: for each row, look up its identifier value in new_ids.
                 for idx, fields in rows_to_create.items():
-                    # The key in new_ids is the first field's UPPER value.
                     key = next(iter(fields.values())).upper()
                     if key in new_ids:
                         df.at[idx, resolved_name] = new_ids[key]
@@ -222,7 +204,6 @@ def _auto_create_securities_batch(
         return {}
 
     # Deduplicate: group rows by their identifier signature.
-    # Key = frozenset of (db_field, UPPER(value)) pairs.
     unique_secs: dict[frozenset, dict[str, str]] = {}
     row_to_key: dict[int, frozenset] = {}
     for idx, fields in rows_to_create.items():

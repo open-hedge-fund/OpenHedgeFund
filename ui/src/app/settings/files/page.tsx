@@ -12,6 +12,7 @@ import {
   ColumnDefinitionData,
   columnMappingApi,
   AvailableMappingsResponse,
+  ColumnMappingOption,
 } from "@/lib/api";
 import { FileIcon } from "@/components/icons/SidebarIcons";
 
@@ -95,15 +96,22 @@ function PlusIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-/* ─── Table display names ─── */
-const TABLE_DISPLAY_NAMES: Record<string, string> = {
-  securities: "Security",
-  asset_types: "Asset Type",
-  continents: "Continent",
-  custodians: "Custodian",
-  countries: "Country",
-  currencies: "Currency",
-};
+function CheckIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
 
 function CloseIcon({ size = 16 }: { size?: number }) {
   return (
@@ -123,6 +131,36 @@ function CloseIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+/* ─── Role badge styling ─── */
+function RoleBadge({ role }: { role: string }) {
+  const styles: Record<string, { bg: string; color: string; label: string }> = {
+    direct: { bg: "#dcfce7", color: "#166534", label: "Store" },
+    resolver: { bg: "#dbeafe", color: "#1e40af", label: "Lookup" },
+  };
+  const s = styles[role] || { bg: "#f3f4f6", color: "#374151", label: role };
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "2px 8px",
+        borderRadius: "4px",
+        fontSize: "var(--font-size-xs)",
+        fontWeight: 500,
+        backgroundColor: s.bg,
+        color: s.color,
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+/* ─── Group mappings by role for dropdown ─── */
+const ROLE_LABELS: Record<string, string> = {
+  direct: "Store in Holdings",
+  resolver: "Lookup",
+};
+
 /* ─── Column Mappings Panel ─── */
 function ColumnMappingsPanel({
   file,
@@ -136,9 +174,14 @@ function ColumnMappingsPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newColumnName, setNewColumnName] = useState("");
-  const [newMapping, setNewMapping] = useState(""); // "table|column_mapping" combined
+  const [newMapping, setNewMapping] = useState("");
   const [newDateFormat, setNewDateFormat] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editColumnName, setEditColumnName] = useState("");
+  const [editMapping, setEditMapping] = useState("");
+  const [editDateFormat, setEditDateFormat] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -161,23 +204,55 @@ function ColumnMappingsPanel({
     }
   };
 
+  // Helper to find a mapping option by key
+  const findMapping = (key: string): ColumnMappingOption | undefined =>
+    availableMappings?.mappings.find((m) => m.key === key);
+
   // Check if the currently selected mapping is a date type
-  const selectedMappingKey = newMapping ? newMapping.split("|")[1] : "";
-  const selectedMappingOption = availableMappings?.mappings.find(
-    (m) => m.key === selectedMappingKey,
-  );
+  const selectedMappingOption = findMapping(newMapping);
   const isDateMapping = selectedMappingOption?.data_type === "date";
+
+  // Group available mappings by role for the dropdown
+  const groupedByRole = useMemo(() => {
+    if (!availableMappings) return null;
+    const groups: Record<string, ColumnMappingOption[]> = {};
+    for (const m of availableMappings.mappings) {
+      if (!groups[m.role]) groups[m.role] = [];
+      groups[m.role].push(m);
+    }
+    return groups;
+  }, [availableMappings]);
+
+  // Filter out already-used mappings for the "add" dropdown
+  const filteredByRole = useMemo(() => {
+    if (!groupedByRole) return null;
+    const usedKeys = new Set(mappings.map((m) => m.column_mapping));
+    const filtered: Record<string, ColumnMappingOption[]> = {};
+    for (const [role, opts] of Object.entries(groupedByRole)) {
+      const available = opts.filter((opt) => !usedKeys.has(opt.key));
+      if (available.length > 0) filtered[role] = available;
+    }
+    return filtered;
+  }, [groupedByRole, mappings]);
+
+  // Clear selection if the chosen mapping was already used
+  useEffect(() => {
+    if (newMapping && filteredByRole) {
+      const stillAvailable = Object.values(filteredByRole).some((opts) =>
+        opts.some((opt) => opt.key === newMapping),
+      );
+      if (!stillAvailable) setNewMapping("");
+    }
+  }, [filteredByRole, newMapping]);
 
   const handleAdd = async () => {
     if (!newColumnName.trim() || !newMapping) return;
     setIsAdding(true);
-    const [tableMapping, columnMapping] = newMapping.split("|");
     try {
       const created = await columnDefinitionApi.create({
         file_id: file.id,
         column_name: newColumnName.trim(),
-        table_mapping: tableMapping,
-        column_mapping: columnMapping,
+        column_mapping: newMapping,
         date_format: newDateFormat.trim() || null,
       });
       setMappings((prev) => [...prev, created]);
@@ -191,31 +266,6 @@ function ColumnMappingsPanel({
     }
   };
 
-  const filteredGroupedMappings = useMemo(() => {
-    if (!availableMappings) return null;
-    const usedKeys = new Set(mappings.map((m) => `${m.table_mapping}|${m.column_mapping}`));
-    const filtered: Record<string, typeof availableMappings.grouped_mappings[string]> = {};
-    for (const [table, opts] of Object.entries(availableMappings.grouped_mappings)) {
-      const available = opts.filter((opt) => !usedKeys.has(`${table}|${opt.key}`));
-      if (available.length > 0) {
-        filtered[table] = available;
-      }
-    }
-    return filtered;
-  }, [availableMappings, mappings]);
-
-  // Clear selection if the chosen mapping was already used
-  useEffect(() => {
-    if (newMapping && filteredGroupedMappings) {
-      const stillAvailable = Object.entries(filteredGroupedMappings).some(
-        ([table, opts]) => opts.some((opt) => `${table}|${opt.key}` === newMapping),
-      );
-      if (!stillAvailable) {
-        setNewMapping("");
-      }
-    }
-  }, [filteredGroupedMappings, newMapping]);
-
   const handleDelete = async (id: number) => {
     try {
       await columnDefinitionApi.delete(id);
@@ -224,6 +274,83 @@ function ColumnMappingsPanel({
       alert("Failed to delete column mapping");
     }
   };
+
+  const startEdit = (m: ColumnDefinitionData) => {
+    setEditingId(m.id);
+    setEditColumnName(m.column_name);
+    setEditMapping(m.column_mapping);
+    setEditDateFormat(m.date_format || "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editColumnName.trim() || !editMapping) return;
+    setIsSaving(true);
+    try {
+      const updated = await columnDefinitionApi.update(editingId, {
+        column_name: editColumnName.trim(),
+        column_mapping: editMapping,
+        date_format: editDateFormat.trim() || null,
+      });
+      setMappings((prev) => prev.map((m) => (m.id === editingId ? updated : m)));
+      setEditingId(null);
+    } catch {
+      alert("Failed to update column mapping");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // For edit mode: include current row's mapping in available options
+  const editFilteredByRole = useMemo(() => {
+    if (!groupedByRole || editingId === null) return null;
+    const editingRow = mappings.find((m) => m.id === editingId);
+    const usedKeys = new Set(
+      mappings.filter((m) => m.id !== editingId).map((m) => m.column_mapping),
+    );
+    const filtered: Record<string, ColumnMappingOption[]> = {};
+    for (const [role, opts] of Object.entries(groupedByRole)) {
+      const available = opts.filter(
+        (opt) =>
+          !usedKeys.has(opt.key) ||
+          (editingRow && opt.key === editingRow.column_mapping),
+      );
+      if (available.length > 0) filtered[role] = available;
+    }
+    return filtered;
+  }, [groupedByRole, mappings, editingId]);
+
+  const editSelectedOption = findMapping(editMapping);
+  const isEditDateMapping = editSelectedOption?.data_type === "date";
+
+  // Render a mapping dropdown grouped by role
+  const renderMappingDropdown = (
+    value: string,
+    onChange: (val: string) => void,
+    options: Record<string, ColumnMappingOption[]> | null,
+  ) => (
+    <select
+      className="form-select"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ width: "100%" }}
+    >
+      <option value="">Select system field...</option>
+      {options &&
+        Object.entries(options).map(([role, opts]) => (
+          <optgroup key={role} label={ROLE_LABELS[role] || role}>
+            {opts.map((opt) => (
+              <option key={opt.key} value={opt.key}>
+                {opt.description}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+    </select>
+  );
 
   return (
     <div className="column-mappings-panel">
@@ -263,40 +390,109 @@ function ColumnMappingsPanel({
           <table className="column-mappings-table">
             <thead>
               <tr>
-                <th>Column Name</th>
-                <th>Table</th>
-                <th>Mapping</th>
+                <th>Your File Column</th>
+                <th>System Field</th>
+                <th>Role</th>
                 <th>Date Format</th>
-                <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {mappings.map((m) => (
-                <tr key={m.id}>
-                  <td>{m.column_name}</td>
-                  <td>
-                    <span className="mapping-badge">{TABLE_DISPLAY_NAMES[m.table_mapping] || m.table_mapping}</span>
-                  </td>
-                  <td>
-                    <span className="mapping-badge">{m.column_mapping}</span>
-                  </td>
-                  <td>{m.date_format || ""}</td>
-                  <td>{formatDate(m.created_at)}</td>
-                  <td>
-                    <button
-                      className="file-action-btn file-action-delete"
-                      onClick={() => handleDelete(m.id)}
-                      title="Delete mapping"
-                    >
-                      <TrashIcon />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {mappings.map((m) => {
+                const mappingOpt = findMapping(m.column_mapping);
+                return editingId === m.id ? (
+                  <tr key={m.id}>
+                    <td>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={editColumnName}
+                        onChange={(e) => setEditColumnName(e.target.value)}
+                        style={{ minWidth: "120px" }}
+                      />
+                    </td>
+                    <td>
+                      {renderMappingDropdown(
+                        editMapping,
+                        (val) => {
+                          setEditMapping(val);
+                          setEditDateFormat("");
+                        },
+                        editFilteredByRole,
+                      )}
+                    </td>
+                    <td>
+                      {editSelectedOption && <RoleBadge role={editSelectedOption.role} />}
+                    </td>
+                    <td>
+                      {isEditDateMapping && (
+                        <input
+                          type="text"
+                          className="form-input"
+                          placeholder="%m/%d/%Y"
+                          value={editDateFormat}
+                          onChange={(e) => setEditDateFormat(e.target.value)}
+                          style={{ minWidth: "100px" }}
+                        />
+                      )}
+                    </td>
+                    <td>
+                      <div className="file-actions">
+                        <button
+                          className="file-action-btn file-action-edit"
+                          onClick={handleSaveEdit}
+                          disabled={isSaving || !editColumnName.trim() || !editMapping}
+                          title="Save"
+                          style={{ color: "var(--color-success, #16a34a)" }}
+                        >
+                          <CheckIcon />
+                        </button>
+                        <button
+                          className="file-action-btn file-action-delete"
+                          onClick={cancelEdit}
+                          title="Cancel"
+                        >
+                          <CloseIcon />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={m.id}>
+                    <td>{m.column_name}</td>
+                    <td>
+                      <span className="mapping-badge">
+                        {mappingOpt?.description || m.column_mapping}
+                      </span>
+                    </td>
+                    <td>
+                      {mappingOpt && <RoleBadge role={mappingOpt.role} />}
+                    </td>
+                    <td>{m.date_format || ""}</td>
+                    <td>
+                      <div className="file-actions">
+                        <button
+                          className="file-action-btn file-action-edit"
+                          onClick={() => startEdit(m)}
+                          title="Edit mapping"
+                        >
+                          <EditIcon />
+                        </button>
+                        <button
+                          className="file-action-btn file-action-delete"
+                          onClick={() => handleDelete(m.id)}
+                          title="Delete mapping"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {mappings.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="column-mappings-empty">
+                  <td colSpan={5} className="column-mappings-empty">
                     No column mappings defined yet.
                   </td>
                 </tr>
@@ -308,35 +504,18 @@ function ColumnMappingsPanel({
             <input
               type="text"
               className="form-input"
-              placeholder="Column name (e.g. Quantity)"
+              placeholder="Your file column name (e.g. Quantity)"
               value={newColumnName}
               onChange={(e) => setNewColumnName(e.target.value)}
             />
-            <select
-              className="form-select"
-              value={newMapping}
-              onChange={(e) => {
-                setNewMapping(e.target.value);
+            {renderMappingDropdown(
+              newMapping,
+              (val) => {
+                setNewMapping(val);
                 setNewDateFormat("");
-              }}
-            >
-              <option value="">Select mapping...</option>
-              {filteredGroupedMappings &&
-                Object.entries(filteredGroupedMappings).map(
-                  ([table, opts]) => (
-                    <optgroup
-                      key={table}
-                      label={TABLE_DISPLAY_NAMES[table] || table}
-                    >
-                      {opts.map((opt) => (
-                        <option key={opt.key} value={`${table}|${opt.key}`}>
-                          {opt.key}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ),
-                )}
-            </select>
+              },
+              filteredByRole,
+            )}
             {isDateMapping && (
               <input
                 type="text"
@@ -673,7 +852,7 @@ function FilesContent() {
         <div className="files-header">
           <div>
             <h2>Files</h2>
-            <p>Manage your document files and their locations</p>
+            <p>Manage your document files and column mappings</p>
           </div>
           <button
             className="btn btn-primary btn-add-file"

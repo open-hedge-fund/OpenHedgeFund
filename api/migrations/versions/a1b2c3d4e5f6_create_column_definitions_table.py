@@ -22,7 +22,6 @@ def upgrade() -> None:
     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('file_id', sa.BigInteger(), nullable=False),
     sa.Column('column_name', sa.String(length=255), nullable=False),
-    sa.Column('table_mapping', sa.String(length=255), nullable=False),
     sa.Column('column_mapping', sa.String(length=255), nullable=False),
     sa.Column('date_format', sa.String(length=50), nullable=True),
     sa.Column('tenant_id', sa.UUID(), nullable=False),

@@ -31,6 +31,11 @@ FK_COLUMNS = {
     "_resolved_security_id": "security_id",
     "_resolved_custodian_id": "custodian_id",
     "_resolved_fund_id": "fund_id",
+    "_resolved_broker_id": "broker_id",
+    "_resolved_strategy_id": "strategy_id",
+    "_resolved_ccy_id": "ccy_id",
+    "_resolved_country_id": "country_id",
+    "_resolved_asset_type_id": "asset_type_id",
 }
 
 
