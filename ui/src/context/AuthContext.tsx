@@ -7,7 +7,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import Cookies from "js-cookie";
 import api from "@/lib/api";
 
 interface User {
@@ -44,17 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
-    const token = Cookies.get("access_token");
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
     try {
       const response = await api.get("/users/me");
       setUser(response.data);
     } catch {
-      Cookies.remove("access_token");
       setUser(null);
     } finally {
       setLoading(false);
@@ -70,11 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const params = new URLSearchParams();
     params.append("username", email);
     params.append("password", password);
-    const response = await api.post("/auth/jwt/login", params, {
+    await api.post("/auth/jwt/login", params, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
-    Cookies.set("access_token", response.data.access_token, {
-      sameSite: "Lax",
     });
     await fetchUser();
   };
@@ -97,8 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await login(email, password);
   };
 
-  const logout = () => {
-    Cookies.remove("access_token");
+  const logout = async () => {
+    try {
+      await api.post("/auth/jwt/logout");
+    } catch {
+      // Ignore errors — cookie may already be expired
+    }
     setUser(null);
     window.location.href = "/login";
   };
